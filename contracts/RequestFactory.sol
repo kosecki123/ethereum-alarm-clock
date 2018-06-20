@@ -1,11 +1,11 @@
-pragma solidity 0.4.19;
+pragma solidity ^0.4.21;
 
 import "contracts/Interface/RequestFactoryInterface.sol";
-import "contracts/Interface/RequestTrackerInterface.sol";
 import "contracts/TransactionRequestCore.sol";
 import "contracts/Library/RequestLib.sol";
 import "contracts/IterTools.sol";
 import "contracts/CloneFactory.sol";
+import "contracts/Library/RequestScheduleLib.sol";
 
 /**
  * @title RequestFactory
@@ -14,18 +14,18 @@ import "contracts/CloneFactory.sol";
 contract RequestFactory is RequestFactoryInterface, CloneFactory {
     using IterTools for bool[6];
 
-    // RequestTracker of this contract.
-    RequestTrackerInterface public requestTracker;
     TransactionRequestCore public transactionRequestCore;
 
-    function RequestFactory(
-        address _trackerAddress,
-        address _transactionRequestCore
-    ) public {
-        require( _trackerAddress != 0x0 );
-        require( _transactionRequestCore != 0x0 );
+    uint constant public BLOCKS_BUCKET_SIZE = 240; //~1h
+    uint constant public TIMESTAMP_BUCKET_SIZE = 3600; //1h
 
-        requestTracker = RequestTrackerInterface(_trackerAddress);
+    function RequestFactory(
+        address _transactionRequestCore
+    ) 
+        public 
+    {
+        require(_transactionRequestCore != 0x0);
+
         transactionRequestCore = TransactionRequestCore(_transactionRequestCore);
     }
 
@@ -75,10 +75,12 @@ contract RequestFactory is RequestFactoryInterface, CloneFactory {
         requests[transactionRequest] = true;
 
         // Log the creation.
-        RequestCreated(transactionRequest, _addressArgs[0]);
-
-        // Add the transaction request to the tracker along with the `windowStart`
-        requestTracker.addRequest(transactionRequest, _uintArgs[7]);
+        emit RequestCreated(
+            transactionRequest,
+            _addressArgs[0],
+            getBucket(_uintArgs[7], RequestScheduleLib.TemporalUnit(_uintArgs[5])),
+            _uintArgs
+        );
 
         return transactionRequest;
     }
@@ -99,35 +101,32 @@ contract RequestFactory is RequestFactoryInterface, CloneFactory {
         bool[6] memory isValid = validateRequestParams(
             _addressArgs,
             _uintArgs,
-            _callData,
             msg.value
         );
 
         if (!isValid.all()) {
             if (!isValid[0]) {
-                ValidationError(uint8(Errors.InsufficientEndowment));
+                emit ValidationError(uint8(Errors.InsufficientEndowment));
             }
             if (!isValid[1]) {
-                ValidationError(uint8(Errors.ReservedWindowBiggerThanExecutionWindow));
+                emit ValidationError(uint8(Errors.ReservedWindowBiggerThanExecutionWindow));
             }
             if (!isValid[2]) {
-                ValidationError(uint8(Errors.InvalidTemporalUnit));
+                emit ValidationError(uint8(Errors.InvalidTemporalUnit));
             }
             if (!isValid[3]) {
-                ValidationError(uint8(Errors.ExecutionWindowTooSoon));
+                emit ValidationError(uint8(Errors.ExecutionWindowTooSoon));
             }
             if (!isValid[4]) {
-                ValidationError(uint8(Errors.CallGasTooHigh));
+                emit ValidationError(uint8(Errors.CallGasTooHigh));
             }
             if (!isValid[5]) {
-                ValidationError(uint8(Errors.EmptyToAddress));
+                emit ValidationError(uint8(Errors.EmptyToAddress));
             }
 
-            // Try to return the ether sent with the message.  If this failed
-            // then revert() to force it to be returned
-            if (!msg.sender.send(msg.value)) {
-                revert();
-            }
+            // Try to return the ether sent with the message
+            msg.sender.transfer(msg.value);
+            
             return 0x0;
         }
 
@@ -158,7 +157,6 @@ contract RequestFactory is RequestFactoryInterface, CloneFactory {
     function validateRequestParams(
         address[3]  _addressArgs,
         uint[12]    _uintArgs,
-        bytes       _callData,
         uint        _endowment
     )
         public view returns (bool[6])
@@ -171,7 +169,6 @@ contract RequestFactory is RequestFactoryInterface, CloneFactory {
                 _addressArgs[2]   // txnData.toAddress
             ],
             _uintArgs,
-            _callData,
             _endowment
         );
     }
@@ -183,5 +180,29 @@ contract RequestFactory is RequestFactoryInterface, CloneFactory {
         public view returns (bool isKnown)
     {
         return requests[_address];
+    }
+
+    function getBucket(uint windowStart, RequestScheduleLib.TemporalUnit unit)
+        public pure returns(int)
+    {
+        uint bucketSize;
+        /* since we want to handle both blocks and timestamps
+            and do not want to get into case where buckets overlaps
+            block buckets are going to be negative ints
+            timestamp buckets are going to be positive ints
+            we'll overflow after 2**255-1 blocks instead of 2**256-1 since we encoding this on int256
+        */
+        int sign;
+
+        if (unit == RequestScheduleLib.TemporalUnit.Blocks) {
+            bucketSize = BLOCKS_BUCKET_SIZE;
+            sign = -1;
+        } else if (unit == RequestScheduleLib.TemporalUnit.Timestamp) {
+            bucketSize = TIMESTAMP_BUCKET_SIZE;
+            sign = 1;
+        } else {
+            revert();
+        }
+        return sign * int(windowStart - (windowStart % bucketSize));
     }
 }

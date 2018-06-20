@@ -8,7 +8,6 @@ const { expect } = require("chai")
 const BlockScheduler = artifacts.require("./BlockScheduler.sol")
 const PaymentLib = artifacts.require("./PaymentLib.sol")
 const RequestFactory = artifacts.require("./RequestFactory.sol")
-const RequestTracker = artifacts.require("./RequestTracker.sol")
 const TransactionRecorder = artifacts.require("./TransactionRecorder.sol")
 const TransactionRequestCore = artifacts.require("./TransactionRequestCore.sol")
 
@@ -30,7 +29,6 @@ contract("Block scheduling", (accounts) => {
   let blockScheduler
   let paymentLib
   let requestFactory
-  let requestTracker
   let transactionRecorder
 
   // ///////////
@@ -41,16 +39,10 @@ contract("Block scheduling", (accounts) => {
     transactionRecorder = await TransactionRecorder.deployed()
     expect(transactionRecorder.address).to.exist
 
-    requestTracker = await RequestTracker.deployed()
-    expect(requestTracker.address).to.exist
-
     const transactionRequestCore = await TransactionRequestCore.deployed()
     expect(transactionRequestCore.address).to.exist
 
-    requestFactory = await RequestFactory.new(
-        requestTracker.address,
-        transactionRequestCore.address
-    )
+    requestFactory = await RequestFactory.new(transactionRequestCore.address)
     blockScheduler = await BlockScheduler.new(
       requestFactory.address,
       "0xecc9c5fff8937578141592e7E62C2D2E364311b8"
@@ -118,7 +110,6 @@ contract("Block scheduling", (accounts) => {
 
     // Let's get the logs so we can find the transaction request address.
     const logNewRequest = scheduleTx.logs.find(e => e.event === "NewRequest")
-
     expect(logNewRequest.args.request).to.exist
 
     const txRequest = await TransactionRequestCore.at(logNewRequest.args.request)
@@ -129,7 +120,8 @@ contract("Block scheduling", (accounts) => {
     expect(parseInt(balOfTxRequest, 10)).to.equal(requestData.calcEndowment())
 
     // Sanity check
-    expect(requestData.calcEndowment()).to.equal(computeEndowment(bounty, fee, 1212121, 123454321, gasPrice))
+    const expectedEndowment = computeEndowment(bounty, fee, 1212121, 123454321, gasPrice)
+    expect(requestData.calcEndowment()).to.equal(expectedEndowment)
 
     // Sanity check
     expect(endowment.toNumber()).to.equal(requestData.calcEndowment())

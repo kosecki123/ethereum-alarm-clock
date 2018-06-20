@@ -8,7 +8,6 @@ const { expect } = require("chai")
 // Contracts
 const BlockScheduler = artifacts.require("./BlockScheduler.sol")
 const RequestFactory = artifacts.require("./RequestFactory.sol")
-const RequestTracker = artifacts.require("./RequestTracker.sol")
 const TransactionRecorder = artifacts.require("./TransactionRecorder.sol")
 const TransactionRequestCore = artifacts.require("./TransactionRequestCore.sol")
 
@@ -25,7 +24,6 @@ contract("Schedule to execution flow", (accounts) => {
 
   let blockScheduler
   let requestFactory
-  let requestTracker
   let txRecorder
   let txRequest
 
@@ -35,16 +33,10 @@ contract("Schedule to execution flow", (accounts) => {
     txRecorder = await TransactionRecorder.new()
     expect(txRecorder.address).to.exist
 
-    requestTracker = await RequestTracker.new()
-    expect(requestTracker.address).to.exist
-
     const transactionRequestCore = await TransactionRequestCore.deployed()
     expect(transactionRequestCore.address).to.exist
 
-    requestFactory = await RequestFactory.new(
-        requestTracker.address,
-        transactionRequestCore.address
-    )
+    requestFactory = await RequestFactory.new(transactionRequestCore.address)
     expect(requestFactory.address).to.exist
 
     blockScheduler = await BlockScheduler.new(
@@ -103,7 +95,7 @@ contract("Schedule to execution flow", (accounts) => {
 
     expect(requestData.schedule.windowStart).to.equal(windowStart)
 
-    expect(requestData.txData.gasPrice).to.equal(parseInt(gasPrice))
+    expect(requestData.txData.gasPrice).to.equal(parseInt(gasPrice, 10))
 
     expect(requestData.paymentData.fee).to.equal(98765)
 

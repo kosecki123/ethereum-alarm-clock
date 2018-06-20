@@ -6,7 +6,6 @@ const { expect } = require("chai")
 
 // / Contracts
 const RequestFactory = artifacts.require("./RequestFactory.sol")
-const RequestTracker = artifacts.require("./RequestTracker.sol")
 const TimestampScheduler = artifacts.require("./TimestampScheduler.sol")
 const TransactionRecorder = artifacts.require("./TransactionRecorder.sol")
 const TransactionRequestCore = artifacts.require("./TransactionRequestCore.sol")
@@ -25,24 +24,16 @@ contract("Timestamp scheduling", (accounts) => {
   const testData32 = ethUtil.bufferToHex(Buffer.from("32".padEnd(32, "AF01")))
 
   let requestFactory
-  let requestTracker
   let timestampScheduler
   let transactionRecorder
 
   // / Deploy a fresh instance of contracts for each test.
   beforeEach(async () => {
-    // Request tracker
-    requestTracker = await RequestTracker.new()
-    expect(requestTracker.address).to.exist
-
     const transactionRequestCore = await TransactionRequestCore.deployed()
     expect(transactionRequestCore.address).to.exist
 
     // Request factory
-    requestFactory = await RequestFactory.new(
-        requestTracker.address,
-        transactionRequestCore.address
-    )
+    requestFactory = await RequestFactory.new(transactionRequestCore.address)
     expect(requestFactory.address).to.exist
 
     // Timestamp scheduler
@@ -98,7 +89,8 @@ contract("Timestamp scheduling", (accounts) => {
     // .to.equal(requestData.calcEndowment())
 
     // Sanity check
-    expect(requestData.calcEndowment()).to.equal(computeEndowment(bounty, fee, 1212121, 123454321, gasPrice))
+    const expectedEndowment = computeEndowment(bounty, fee, 1212121, 123454321, gasPrice)
+    expect(requestData.calcEndowment()).to.equal(expectedEndowment)
 
     expect(requestData.txData.toAddress).to.equal(transactionRecorder.address)
 

@@ -1,4 +1,4 @@
-pragma solidity 0.4.19;
+pragma solidity ^0.4.21;
 
 import "contracts/Library/RequestLib.sol";
 import "contracts/Library/RequestScheduleLib.sol";
@@ -9,6 +9,7 @@ contract TransactionRequestCore is TransactionRequestInterface {
     using RequestScheduleLib for RequestScheduleLib.ExecutionWindow;
 
     RequestLib.Request txnRequest;
+    bool private initialized = false;
 
     /*
      *  addressArgs[0] - meta.createdBy
@@ -36,7 +37,10 @@ contract TransactionRequestCore is TransactionRequestInterface {
     )
         public payable
     {
+        require(!initialized);
+
         txnRequest.initialize(addressArgs, uintArgs, callData);
+        initialized = true;
     }
 
     /*
@@ -69,16 +73,7 @@ contract TransactionRequestCore is TransactionRequestInterface {
     function requestData()
         public view returns (address[6], bool[3], uint[15], uint8[1])
     {
-        if (txnRequest.serialize()) {
-            return (
-                txnRequest.serializedValues.addressValues,
-                txnRequest.serializedValues.boolValues,
-                txnRequest.serializedValues.uintValues,
-                txnRequest.serializedValues.uint8Values
-            );
-        } else {
-            revert();
-        }
+        return txnRequest.serialize();
     }
 
     function callData()
@@ -99,8 +94,9 @@ contract TransactionRequestCore is TransactionRequestInterface {
     function proxy(address _to, bytes _data)
         public payable returns (bool success)
     {
-        require(txnRequest.meta.owner == msg.sender
-                && txnRequest.schedule.isAfterWindow());
+        require(txnRequest.meta.owner == msg.sender && txnRequest.schedule.isAfterWindow());
+        
+        /* solium-disable-next-line */
         return _to.call.value(msg.value)(_data);
     }
 
@@ -121,5 +117,9 @@ contract TransactionRequestCore is TransactionRequestInterface {
 
     function sendOwnerEther() public returns (bool) {
         return txnRequest.sendOwnerEther();
+    }
+
+    function sendOwnerEther(address recipient) public returns (bool) {
+        return txnRequest.sendOwnerEther(recipient);
     }
 }

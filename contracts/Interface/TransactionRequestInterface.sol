@@ -1,4 +1,4 @@
-pragma solidity 0.4.19;
+pragma solidity ^0.4.21;
 
 contract TransactionRequestInterface {
     
@@ -8,15 +8,10 @@ contract TransactionRequestInterface {
     function claim() public payable returns (bool);
 
     // Proxy function
-    function proxy(address recipient, bytes callData)
-        public payable returns (bool);
+    function proxy(address recipient, bytes callData) public payable returns (bool);
 
     // Data accessors
-    function requestData() public view returns (address[6],
-                                                bool[3],
-                                                uint[15],
-                                                uint8[1]);
-
+    function requestData() public view returns (address[6], bool[3], uint[15], uint8[1]);
     function callData() public view returns (bytes);
 
     // Pull mechanisms for payments.
@@ -24,4 +19,5 @@ contract TransactionRequestInterface {
     function sendFee() public returns (bool);
     function sendBounty() public returns (bool);
     function sendOwnerEther() public returns (bool);
+    function sendOwnerEther(address recipient) public returns (bool);
 }

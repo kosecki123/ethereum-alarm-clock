@@ -4,7 +4,6 @@
 .genesis.json
 .vscode
 
-./build/
 dist/
 chains/
 nContracts/
@@ -18,8 +17,8 @@ coverage
 coverage/*
 
 alarm_client/*
-deployed.info
-deployed.json
+contracts.info
+contracts.json
 gas.txt
 notes.txt
 
