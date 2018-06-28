@@ -90,8 +90,8 @@
 
 ### contract/zeppelin
 
-* [ ] [code-review/zeppelin/SafeMath.md](code-review/zeppelin/SafeMath.md)
-  * [ ] library SafeMath
+* [x] [code-review/zeppelin/SafeMath.md](code-review/zeppelin/SafeMath.md)
+  * [x] library SafeMath
 
 <br />
 
