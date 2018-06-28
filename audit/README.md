@@ -98,3 +98,21 @@
 ### Excluded - Only Used For Testing
 
 * [../contracts/Migrations.sol](../contracts/Migrations.sol)
+
+<br />
+
+### Compiler Warnings
+
+The first and the third compiler warnings are due to the new `constructor(...)` keyword available from [Solidity 0.4.21](https://github.com/ethereum/solidity/releases/tag/v0.4.22) onwards.
+
+```
+RequestFactory.sol:22:5: Warning: Defining constructors as functions with the same name as the contract is deprecated. Use "constructor(...) { ... }" instead.
+    function RequestFactory(
+    ^ (Relevant source part starts here and spans across multiple lines).
+Library/RequestLib.sol:412:5: Warning: Function state mutability can be restricted to pure
+    function getEXECUTION_GAS_OVERHEAD()
+    ^ (Relevant source part starts here and spans across multiple lines).
+./_examples/DelayedPayment.sol:14:5: Warning: Defining constructors as functions with the same name as the contract is deprecated. Use "constructor(...) { ... }" instead.
+    function DelayedPayment(
+    ^ (Relevant source part starts here and spans across multiple lines).
+```
