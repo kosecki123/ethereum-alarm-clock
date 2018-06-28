@@ -1,6 +1,6 @@
-// ETH/USD 19 May 2018 00:14 AEDT from CMC and ethgasstation.info
-var ethPriceUSD = 675.71;
-var defaultGasPrice = web3.toWei(16, "gwei");
+// ETH/USD 29 Jun 2018 03:20 AEDT from CMC and ethgasstation.info
+var ethPriceUSD = 435.65;
+var defaultGasPrice = web3.toWei(2, "gwei");
 
 // -----------------------------------------------------------------------------
 // Accounts
@@ -10,10 +10,10 @@ var accountNames = {};
 
 addAccount(eth.accounts[0], "Account #0 - Miner");
 addAccount(eth.accounts[1], "Account #1 - Contract Owner");
-addAccount(eth.accounts[2], "Account #2 - Alice");
-addAccount(eth.accounts[3], "Account #3 - Bob");
-addAccount(eth.accounts[4], "Account #4 - Carol");
-addAccount(eth.accounts[5], "Account #5 - Dave");
+addAccount(eth.accounts[2], "Account #2 - Fee Recipient");
+addAccount(eth.accounts[3], "Account #3 - Schedule Creator");
+addAccount(eth.accounts[4], "Account #4 - Payment Recipient");
+addAccount(eth.accounts[5], "Account #5 - Executor");
 addAccount(eth.accounts[6], "Account #6");
 addAccount(eth.accounts[7], "Account #7");
 addAccount(eth.accounts[8], "Account #8");
@@ -23,10 +23,10 @@ addAccount(eth.accounts[11], "Account #11");
 
 var minerAccount = eth.accounts[0];
 var contractOwnerAccount = eth.accounts[1];
-var aliceAccount = eth.accounts[2];
-var bobAccount = eth.accounts[3];
-var carolAccount = eth.accounts[4];
-var daveAccount = eth.accounts[5];
+var feeRecipient = eth.accounts[2];
+var scheduleCreator = eth.accounts[3];
+var paymentRecipient = eth.accounts[4];
+var executor = eth.accounts[5];
 var account6 = eth.accounts[6];
 var account7 = eth.accounts[7];
 var account8 = eth.accounts[8];
@@ -273,7 +273,7 @@ function waitUntil(message, unixTime, addSeconds) {
 //Wait until some block
 //-----------------------------------------------------------------------------
 function waitUntilBlock(message, block, addBlocks) {
-  var b = parseInt(block) + parseInt(addBlocks);
+  var b = parseInt(block) + parseInt(addBlocks) + parseInt(1);
   console.log("RESULT: Waiting until '" + message + "' #" + block + "+" + addBlocks + "=#" + b + " currentBlock=" + eth.blockNumber);
   while (eth.blockNumber <= b) {
   }
@@ -500,113 +500,80 @@ function printClubContractDetails() {
 }
 
 
-// -----------------------------------------------------------------------------
-// ProxyFactory Contract
-// -----------------------------------------------------------------------------
-var proxyFactoryContractAddress = null;
-var proxyFactoryContractAbi = null;
-
-function addProxyFactoryContractAddressAndAbi(address, proxyFactoryAbi) {
-  proxyFactoryContractAddress = address;
-  proxyFactoryContractAbi = proxyFactoryAbi;
+function displayTxRequestData(msg, data) {
+  var addressValues = data[0];
+  var boolValues = data[1];
+  var uintValues = data[2];
+  var uint8Values = data[3];
+  console.log("RESULT: " + msg + ": claimedBy=" + addressValues[0] + " createdBy=" + addressValues[1] + " owner=" + addressValues[2]);
+  console.log("RESULT:   feeRecipient=" + addressValues[3] + " bountyBenefactor=" + addressValues[4] + " toAddress=" + addressValues[5]);
+  console.log("RESULT:   isCancelled=" + boolValues[0] + " wasCalled=" + boolValues[1] + " wasSuccessful=" + boolValues[2]);
+  console.log("RESULT:   claimDeposit=" + uintValues[0] + " fee=" + uintValues[1] + " feeOwed=" + uintValues[2] +
+    " bounty=" + uintValues[3] + " bountyOwed=" + uintValues[4] + " claimWindowSize=" + uintValues[5] + " freezePeriod=" + uintValues[6] +
+    " reservedWindowSize=" + uintValues[7] + " temporalUnit=" + uintValues[8]);
+  console.log("RESULT:   windowSize=" + uintValues[9] + " windowStart=" + uintValues[10] + " callGas=" + uintValues[11] +
+    " callValue=" + uintValues[12] + " gasPrice=" + uintValues[13] + " requiredDeposit=" + uintValues[14]);
+  console.log("RESULT:   paymentModifier=" + uint8Values[0]);
 }
 
-var proxyFactoryFromBlock = 0;
+// -----------------------------------------------------------------------------
+// RequestFactory Contract
+// -----------------------------------------------------------------------------
+var requestFactoryContractAddress = null;
+var requestFactoryContractAbi = null;
 
-function getProxyFactoryListing() {
+function addRequestFactoryContractAddressAndAbi(address, requestFactoryAbi) {
+  requestFactoryContractAddress = address;
+  requestFactoryContractAbi = requestFactoryAbi;
+}
+
+var requestFactoryFromBlock = 0;
+
+function getRequestFactoryListing() {
+  if (requestFactoryFromBlock == 0) {
+    requestFactoryFromBlock = baseBlock;
+  }
   var newContractAddress;
-  console.log("RESULT: proxyFactoryContractAddress=" + proxyFactoryContractAddress);
-  if (proxyFactoryContractAddress != null && proxyFactoryContractAbi != null) {
-    var contract = eth.contract(proxyFactoryContractAbi).at(proxyFactoryContractAddress);
+  console.log("RESULT: requestFactoryContractAddress=" + requestFactoryContractAddress);
+  if (requestFactoryContractAddress != null && requestFactoryContractAbi != null) {
+    var contract = eth.contract(requestFactoryContractAbi).at(requestFactoryContractAddress);
 
     var latestBlock = eth.blockNumber;
     var i;
 
-    var proxyDeployedEvents = contract.ProxyDeployed({}, { fromBlock: proxyFactoryFromBlock, toBlock: latestBlock });
+    var requestCreatedEvents = contract.RequestCreated({}, { fromBlock: requestFactoryFromBlock, toBlock: latestBlock });
     i = 0;
-    proxyDeployedEvents.watch(function (error, result) {
-      console.log("RESULT: get ProxyDeployed " + i++ + " #" + result.blockNumber + " " + JSON.stringify(result.args));
-      newContractAddress = result.args.proxyAddress;
+    requestCreatedEvents.watch(function (error, result) {
+      console.log("RESULT: get RequestCreated " + i++ + " #" + result.blockNumber + " " + JSON.stringify(result.args));
+      newContractAddress = result.args.request;
     });
-    proxyDeployedEvents.stopWatching();
+    requestCreatedEvents.stopWatching();
   }
-  // console.log("RESULT: got ProxyDeployed=" + newContractAddress);
+  console.log("RESULT: got RequestCreated=" + newContractAddress);
   return newContractAddress;
 }
 
-function printProxyFactoryContractDetails() {
-  console.log("RESULT: proxyFactoryContractAddress=" + proxyFactoryContractAddress);
-  if (proxyFactoryContractAddress != null && proxyFactoryContractAbi != null) {
-    var contract = eth.contract(proxyFactoryContractAbi).at(proxyFactoryContractAddress);
+function printRequestFactoryContractDetails() {
+  if (requestFactoryFromBlock == 0) {
+    requestFactoryFromBlock = baseBlock;
+  }
+  console.log("RESULT: requestFactory.Address=" + requestFactoryContractAddress);
+  if (requestFactoryContractAddress != null && requestFactoryContractAbi != null) {
+    var contract = eth.contract(requestFactoryContractAbi).at(requestFactoryContractAddress);
+    console.log("RESULT: requestFactory.transactionRequestCore=" + contract.transactionRequestCore());
+    console.log("RESULT: requestFactory.BLOCKS_BUCKET_SIZE=" + contract.BLOCKS_BUCKET_SIZE());
+    console.log("RESULT: requestFactory.TIMESTAMP_BUCKET_SIZE=" + contract.TIMESTAMP_BUCKET_SIZE());
 
     var latestBlock = eth.blockNumber;
     var i;
 
-    var proxyDeployedEvents = contract.ProxyDeployed({}, { fromBlock: proxyFactoryFromBlock, toBlock: latestBlock });
+    var requestCreatedEvents = contract.RequestCreated({}, { fromBlock: requestFactoryFromBlock, toBlock: latestBlock });
     i = 0;
-    proxyDeployedEvents.watch(function (error, result) {
-      console.log("RESULT: ProxyDeployed " + i++ + " #" + result.blockNumber + " " + JSON.stringify(result.args));
+    requestCreatedEvents.watch(function (error, result) {
+      console.log("RESULT: RequestCreated " + i++ + " #" + result.blockNumber + " " + JSON.stringify(result.args));
     });
-    proxyDeployedEvents.stopWatching();
+    requestCreatedEvents.stopWatching();
 
-    var proxiesDeployedEvents = contract.ProxiesDeployed({}, { fromBlock: proxyFactoryFromBlock, toBlock: latestBlock });
-    i = 0;
-    proxiesDeployedEvents.watch(function (error, result) {
-      console.log("RESULT: ProxiesDeployed " + i++ + " #" + result.blockNumber + " " + JSON.stringify(result.args));
-    });
-    proxiesDeployedEvents.stopWatching();
-
-    proxyFactoryFromBlock = latestBlock + 1;
+    requestFactoryFromBlock = latestBlock + 1;
   }
-}
-
-
-// -----------------------------------------------------------------------------
-// Generate Summary JSON
-// -----------------------------------------------------------------------------
-function generateSummaryJSON() {
-  console.log("JSONSUMMARY: {");
-  if (crowdsaleContractAddress != null && crowdsaleContractAbi != null) {
-    var contract = eth.contract(crowdsaleContractAbi).at(crowdsaleContractAddress);
-    var blockNumber = eth.blockNumber;
-    var timestamp = eth.getBlock(blockNumber).timestamp;
-    console.log("JSONSUMMARY:   \"blockNumber\": " + blockNumber + ",");
-    console.log("JSONSUMMARY:   \"blockTimestamp\": " + timestamp + ",");
-    console.log("JSONSUMMARY:   \"blockTimestampString\": \"" + new Date(timestamp * 1000).toUTCString() + "\",");
-    console.log("JSONSUMMARY:   \"crowdsaleContractAddress\": \"" + crowdsaleContractAddress + "\",");
-    console.log("JSONSUMMARY:   \"crowdsaleContractOwnerAddress\": \"" + contract.owner() + "\",");
-    console.log("JSONSUMMARY:   \"tokenContractAddress\": \"" + contract.bttsToken() + "\",");
-    console.log("JSONSUMMARY:   \"tokenContractDecimals\": " + contract.TOKEN_DECIMALS() + ",");
-    console.log("JSONSUMMARY:   \"crowdsaleWalletAddress\": \"" + contract.wallet() + "\",");
-    console.log("JSONSUMMARY:   \"crowdsaleTeamWalletAddress\": \"" + contract.teamWallet() + "\",");
-    console.log("JSONSUMMARY:   \"crowdsaleTeamPercent\": " + contract.TEAM_PERCENT_GZE() + ",");
-    console.log("JSONSUMMARY:   \"bonusListContractAddress\": \"" + contract.bonusList() + "\",");
-    console.log("JSONSUMMARY:   \"tier1Bonus\": " + contract.TIER1_BONUS() + ",");
-    console.log("JSONSUMMARY:   \"tier2Bonus\": " + contract.TIER2_BONUS() + ",");
-    console.log("JSONSUMMARY:   \"tier3Bonus\": " + contract.TIER3_BONUS() + ",");
-    var startDate = contract.START_DATE();
-    // BK TODO - Remove for production
-    startDate = 1512921600;
-    var endDate = contract.endDate();
-    // BK TODO - Remove for production
-    endDate = 1513872000;
-    console.log("JSONSUMMARY:   \"crowdsaleStart\": " + startDate + ",");
-    console.log("JSONSUMMARY:   \"crowdsaleStartString\": \"" + new Date(startDate * 1000).toUTCString() + "\",");
-    console.log("JSONSUMMARY:   \"crowdsaleEnd\": " + endDate + ",");
-    console.log("JSONSUMMARY:   \"crowdsaleEndString\": \"" + new Date(endDate * 1000).toUTCString() + "\",");
-    console.log("JSONSUMMARY:   \"usdPerEther\": " + contract.usdPerKEther().shift(-3) + ",");
-    console.log("JSONSUMMARY:   \"usdPerGze\": " + contract.USD_CENT_PER_GZE().shift(-2) + ",");
-    console.log("JSONSUMMARY:   \"gzePerEth\": " + contract.gzePerEth().shift(-18) + ",");
-    console.log("JSONSUMMARY:   \"capInUsd\": " + contract.CAP_USD() + ",");
-    console.log("JSONSUMMARY:   \"capInEth\": " + contract.capEth().shift(-18) + ",");
-    console.log("JSONSUMMARY:   \"minimumContributionEth\": " + contract.MIN_CONTRIBUTION_ETH().shift(-18) + ",");
-    console.log("JSONSUMMARY:   \"contributedEth\": " + contract.contributedEth().shift(-18) + ",");
-    console.log("JSONSUMMARY:   \"contributedUsd\": " + contract.contributedUsd() + ",");
-    console.log("JSONSUMMARY:   \"generatedGze\": " + contract.generatedGze().shift(-18) + ",");
-    console.log("JSONSUMMARY:   \"lockedAccountThresholdUsd\": " + contract.lockedAccountThresholdUsd() + ",");
-    console.log("JSONSUMMARY:   \"lockedAccountThresholdEth\": " + contract.lockedAccountThresholdEth().shift(-18) + ",");
-    console.log("JSONSUMMARY:   \"precommitmentAdjusted\": " + contract.precommitmentAdjusted() + ",");
-    console.log("JSONSUMMARY:   \"finalised\": " + contract.finalised());
-  }
-  console.log("JSONSUMMARY: }");
 }

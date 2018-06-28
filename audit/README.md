@@ -1,4 +1,43 @@
+The user interface for testing the Ethereum Alarm Clock smart contracts on the Kovan testnet is at http://chronologic-dev.s3-website-us-east-1.amazonaws.com/ .
 
+The documentation for the Ethereum Alarm Clock is at https://ethereum-alarm-clock.readthedocs.io/en/latest/index.html .
+
+<br />
+
+<hr />
+
+## Recommendations
+
+* [ ] **LOW IMPORTANCE** *scheduler/BlockScheduler.sol* and *scheduler/TimestampScheduler.sol* both have a comment `// Sets the factoryAddress variable found in SchedulerInterface contract.` but `factoryAddress` is defined in *scheduler/BaseScheduler.sol* and not in the *Interface/SchedulerInterface*. These comments should be updated
+* [ ] **LOW IMPORTANCE** The constructors for *RequestFactory.sol*, *Scheduler/BlockScheduler.sol*, *Scheduler/TimestampScheduler.sol* and *_examples/DelayedPayment.sol* should be updated to use the `constructor(...)` keyword introduced in [Solidity 0.4.21](https://github.com/ethereum/solidity/releases/tag/v0.4.22), if any source code is updated
+* [ ] **LOW IMPORTANCE** `RequestLib.getEXECUTION_GAS_OVERHEAD()` should be using the `pure` modifier instead of the `view` modifier, if any source code is updated
+
+<br />
+
+<hr />
+
+## Testing
+
+* [x] Deploy Libraries #1
+  * [x] Deploy MathLib
+  * [x] Deploy PaymentLib
+  * [x] Deploy RequestScheduleLib
+  * [x] Deploy IterTools
+* [x] Deploy Libraries #2
+  * [x] Deploy RequestLib
+  * [x] Deploy TransactionRequestCore
+* [x] Deploy RequestFactory
+* [x] Deploy Schedulers
+  * [x] Deploy BlockScheduler
+  * [x] Deploy TimestampScheduler
+* [ ] Execute Delayed Payment
+  * [x] Schedule Delayed Payment
+  * [ ] Claim Delayed Payment
+  * [ ] Execute Delayed Payment
+
+<br />
+
+<hr />
 
 ## Code Review
 

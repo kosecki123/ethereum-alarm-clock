@@ -29,6 +29,7 @@ contract TimestampScheduler is BaseScheduler {
         temporalUnit = RequestScheduleLib.TemporalUnit.Timestamp;
 
         // Sets the factoryAddress variable found in SchedulerInterface contract.
+        // BK NOTE: factoryAddress is defined in BaseScheduler and not SchedulerInterface
         factoryAddress = _factoryAddress;
 
         // Sets the fee recipient for these schedulers.

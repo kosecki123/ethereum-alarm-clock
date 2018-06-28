@@ -3,6 +3,7 @@ PASSWORD=
 
 SOURCEDIR=../../contracts
 LIBDIR=./Library
+SCHEDULERDIR=./Scheduler
 TESTDIR=./_examples
 
 MATHLIBSOL=MathLib.sol
@@ -19,6 +20,10 @@ TRANSACTIONREQUESTCORESOL=TransactionRequestCore.sol
 TRANSACTIONREQUESTCOREJS=TransactionRequestCore.js
 REQUESTFACTORYSOL=RequestFactory.sol
 REQUESTFACTORYJS=RequestFactory.js
+BLOCKSCHEDULERSOL=BlockScheduler.sol
+BLOCKSCHEDULERJS=BlockScheduler.js
+TIMESTAMPSCHEDULERSOL=TimestampScheduler.sol
+TIMESTAMPSCHEDULERJS=TimestampScheduler.js
 TESTCONTRACT1SOL=DelayedPayment.sol
 TESTCONTRACT1JS=DelayedPayment.js
 

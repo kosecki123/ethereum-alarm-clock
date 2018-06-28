@@ -1,7 +1,7 @@
 pragma solidity ^0.4.21;
 
-import "contracts/Library/RequestScheduleLib.sol";
-import "contracts/Scheduler/BaseScheduler.sol";
+import "Library/RequestScheduleLib.sol";
+import "Scheduler/BaseScheduler.sol";
 
 /**
  * @title BlockScheduler
