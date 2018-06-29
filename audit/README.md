@@ -79,12 +79,12 @@ The documentation for the Ethereum Alarm Clock is at https://ethereum-alarm-cloc
 
 ### contract/Interface
 
-* [ ] [code-review/Interface/RequestFactoryInterface.md](code-review/Interface/RequestFactoryInterface.md)
-  * [ ] contract RequestFactoryInterface
-* [ ] [code-review/Interface/SchedulerInterface.md](code-review/Interface/SchedulerInterface.md)
-  * [ ] contract SchedulerInterface
-* [ ] [code-review/Interface/TransactionRequestInterface.md](code-review/Interface/TransactionRequestInterface.md)
-  * [ ] contract TransactionRequestInterface
+* [x] [code-review/Interface/RequestFactoryInterface.md](code-review/Interface/RequestFactoryInterface.md)
+  * [x] contract RequestFactoryInterface
+* [x] [code-review/Interface/SchedulerInterface.md](code-review/Interface/SchedulerInterface.md)
+  * [x] contract SchedulerInterface
+* [x] [code-review/Interface/TransactionRequestInterface.md](code-review/Interface/TransactionRequestInterface.md)
+  * [x] contract TransactionRequestInterface
 
 <br />
 
