@@ -15,6 +15,7 @@ The documentation for the Ethereum Alarm Clock is at https://ethereum-alarm-cloc
 * [ ] **LOW IMPORTANCE** *scheduler/BlockScheduler.sol* and *scheduler/TimestampScheduler.sol* both have a comment `// Sets the factoryAddress variable found in SchedulerInterface contract.` but `factoryAddress` is defined in *scheduler/BaseScheduler.sol* and not in the *Interface/SchedulerInterface*. These comments should be updated
 * [ ] **LOW IMPORTANCE** The constructors for *RequestFactory.sol*, *Scheduler/BlockScheduler.sol*, *Scheduler/TimestampScheduler.sol* and *_examples/DelayedPayment.sol* should be updated to use the `constructor(...)` keyword introduced in [Solidity 0.4.21](https://github.com/ethereum/solidity/releases/tag/v0.4.22), if any source code is updated
 * [ ] **LOW IMPORTANCE** `RequestLib.getEXECUTION_GAS_OVERHEAD()` should be using the `pure` modifier instead of the `view` modifier, if any source code is updated
+* [ ] **LOW IMPORTANCE** Events in libraries are not automatically included in the ABI for contracts that call the library. The current workaround is to duplicate the events in the contracts that call the library. One [reference](https://ethereum.stackexchange.com/questions/11137/watching-events-defined-in-libraries). In EAC for example, RequestLib's `Aborted(...)`, `Cancelled(...)`, `Claimed()` and `Executed(...)` events are not available in the ABI for *TransactionRequestCore* - [test/TransactionRequestCore.js#L46](https://github.com/bokkypoobah/EthereumAlarmClockAudit/blob/acd8eeafc2006d7d9cdeb03c9c17d1a43b9a4994/audit/test/TransactionRequestCore.js#L46)
 
 <br />
 
@@ -36,8 +37,8 @@ The documentation for the Ethereum Alarm Clock is at https://ethereum-alarm-cloc
   * [x] Deploy TimestampScheduler
 * [ ] Execute Delayed Payment
   * [x] Schedule Delayed Payment
-  * [ ] Claim Delayed Payment
-  * [ ] Execute Delayed Payment
+  * [x] Claim Delayed Payment
+  * [x] Execute Delayed Payment
 
 <br />
 
@@ -49,8 +50,8 @@ The documentation for the Ethereum Alarm Clock is at https://ethereum-alarm-cloc
 
 * [ ] [code-review/CloneFactory.md](code-review/CloneFactory.md)
   * [ ] contract CloneFactory
-* [ ] [code-review/IterTools.md](code-review/IterTools.md)
-  * [ ] library IterTools
+* [x] [code-review/IterTools.md](code-review/IterTools.md)
+  * [x] library IterTools
 * [ ] [code-review/RequestFactory.md](code-review/RequestFactory.md)
   * [ ] contract RequestFactory is RequestFactoryInterface, CloneFactory
     * [ ] using IterTools for bool[6];
@@ -99,8 +100,8 @@ The documentation for the Ethereum Alarm Clock is at https://ethereum-alarm-cloc
     * [ ] using SafeMath for uint;
 * [ ] [code-review/Library/ExecutionLib.md](code-review/Library/ExecutionLib.md)
   * [ ] library ExecutionLib
-* [ ] [code-review/Library/MathLib.md](code-review/Library/MathLib.md)
-  * [ ] library MathLib
+* [x] [code-review/Library/MathLib.md](code-review/Library/MathLib.md)
+  * [x] library MathLib
 * [ ] [code-review/Library/PaymentLib.md](code-review/Library/PaymentLib.md)
   * [ ] library PaymentLib
     * [ ] using SafeMath for uint;

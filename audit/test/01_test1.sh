@@ -86,6 +86,7 @@ printf "END_DATE                  = '$END_DATE' '$END_DATE_S'\n" | tee -a $TEST1
 
 # Make copy of SOL file and modify start and end times ---
 `cp -rp $SOURCEDIR/* .`
+`cp -rp modifiedContracts/* .`
 
 # --- Modify parameters ---
 # `perl -pi -e "s/START_DATE \= 1525132800.*$/START_DATE \= $START_DATE; \/\/ $START_DATE_S/" $CROWDSALESOL`
@@ -414,7 +415,7 @@ console.log("RESULT: ");
 
 // -----------------------------------------------------------------------------
 var delayedPaymentMessage = "Schedule Delayed Payment";
-var numBlocks = 10;
+var numBlocks = 20;
 var value = new BigNumber(10).shift(18);
 // -----------------------------------------------------------------------------
 console.log("RESULT: ---------- " + delayedPaymentMessage + " ----------");
@@ -454,14 +455,13 @@ var stake = new BigNumber(0.1).shift(18);
 // -----------------------------------------------------------------------------
 console.log("RESULT: ---------- " + claim1Message + " ----------");
 var delayedPaymentTxRequest = eth.contract(transactionRequestCoreAbi).at(delayedPayment.scheduledTransaction());
-// console.log("RESULT: delayedPaymentTxRequest.requestData=" + JSON.stringify(delayedPaymentTxRequest.requestData()));
-displayTxRequestData(claim1Message, delayedPaymentTxRequest.requestData());
 var claim1_1Tx = delayedPaymentTxRequest.claim({from: executor, value: stake, gas: 400000, gasPrice: defaultGasPrice});
 while (txpool.status.pending > 0) {
 }
 printBalances();
 failIfTxStatusError(claim1_1Tx, claim1Message);
 printTxData("claim1_1Tx", claim1_1Tx);
+displayTxRequestDetails(claim1Message, delayedPayment.scheduledTransaction(), transactionRequestCoreAbi);
 console.log("RESULT: ");
 
 
@@ -470,133 +470,21 @@ waitUntilBlock("Wait to execute", eth.getTransaction(delayedPaymentTx).blockNumb
 
 // -----------------------------------------------------------------------------
 var execute1Message = "Execute Delayed Payment";
+var gasPrice = web3.toWei(20, "gwei");
 // -----------------------------------------------------------------------------
 console.log("RESULT: ---------- " + execute1Message + " ----------");
 var delayedPaymentTxRequest = eth.contract(transactionRequestCoreAbi).at(delayedPayment.scheduledTransaction());
-// console.log("RESULT: delayedPaymentTxRequest.requestData=" + JSON.stringify(delayedPaymentTxRequest.requestData()));
-displayTxRequestData(claim1Message, delayedPaymentTxRequest.requestData());
 // NO var execute1_1Tx = eth.sendTransaction({from: executor, to: delayedPayment.scheduledTransaction(), gas: 400000, gasPrice: defaultGasPrice});
 // PART var execute1_1Tx = eth.sendTransaction({from: executor, to: delayedPaymentAddress, gas: 400000, gasPrice: defaultGasPrice});
-var execute1_1Tx = delayedPaymentTxRequest.execute({from: executor, gas: 400000, gasPrice: defaultGasPrice});
+var execute1_1Tx = delayedPaymentTxRequest.execute({from: executor, gas: 400000, gasPrice: gasPrice});
 while (txpool.status.pending > 0) {
 }
 printBalances();
 failIfTxStatusError(execute1_1Tx, execute1Message);
 printTxData("execute1_1Tx", execute1_1Tx);
+displayTxRequestDetails(execute1Message, delayedPayment.scheduledTransaction(), transactionRequestCoreAbi);
 console.log("RESULT: ");
 
-
-
-exit;
-
-
-
-// -----------------------------------------------------------------------------
-var deployTokenMessage = "Deploy Token Contract";
-var symbol = "ORIGINAL";
-var name = "Original";
-var decimals = 18;
-var initialSupply = new BigNumber("1000000").shift(18);
-// -----------------------------------------------------------------------------
-console.log("RESULT: ---------- " + deployTokenMessage + " ----------");
-var tokenContract = web3.eth.contract(tokenAbi);
-// console.log(JSON.stringify(tokenContract));
-var tokenTx = null;
-var tokenAddress = null;
-var token = tokenContract.new({from: contractOwnerAccount, data: tokenBin, gas: 6000000, gasPrice: defaultGasPrice},
-  function(e, contract) {
-    if (!e) {
-      if (!contract.address) {
-        tokenTx = contract.transactionHash;
-      } else {
-        tokenAddress = contract.address;
-      }
-    }
-  }
-);
-while (txpool.status.pending > 0) {
-}
-var deployToken_1Tx = token.init(symbol, name, decimals, contractOwnerAccount, initialSupply, {from: contractOwnerAccount, data: tokenBin, gas: 6000000, gasPrice: defaultGasPrice});
-while (txpool.status.pending > 0) {
-}
-addAccount(tokenAddress, "Token '" + token.symbol() + "' '" + token.name() + "'");
-addTokenAContractAddressAndAbi(tokenAddress, tokenAbi);
-console.log("DATA: var tokenAddress=\"" + tokenAddress + "\";");
-console.log("DATA: var tokenAbi=" + JSON.stringify(tokenAbi) + ";");
-console.log("DATA: var token=eth.contract(tokenAbi).at(tokenAddress);");
-printBalances();
-failIfTxStatusError(tokenTx, deployTokenMessage + " - deploy");
-failIfTxStatusError(deployToken_1Tx, deployTokenMessage + " - init");
-printTxData("tokenTx", tokenTx);
-printTxData("deployToken_1Tx", deployToken_1Tx);
-printTokenAContractDetails();
-console.log("RESULT: ");
-
-
-// -----------------------------------------------------------------------------
-var deployProxyContractMessage = "Deploy Proxy Contract";
-// var originalData = "00000000000000000000000000000000000000000000000000000000000000a000000000000000000000000000000000000000000000000000000000000000e00000000000000000000000000000000000000000000000000000000000000012000000000000000000000000a11aae29840fbb5c86e6fd4cf809eba183aef43300000000000000000000000000000000000000000000d3c21bcecceda100000000000000000000000000000000000000000000000000000000000000000000074f5247494e414c0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000084f726967696e616c000000000000000000000000000000000000000000000000";
-// console.log("RESULT: originalData=" + originalData);
-// var tokenContract=eth.contract(tokenAbi);
-// var data="0x" + tokenContract.new.getData(symbol, name, decimals, contractOwnerAccount, initialSupply.toFixed(0)).substring(9);
-var data="";
-// console.log("RESULT: data=" + data);
-// -----------------------------------------------------------------------------
-console.log("RESULT: ----- " + deployProxyContractMessage + " -----");
-var deployProxyContractTx = proxyFactory.createProxy(tokenAddress, data, {from: aliceAccount, gas: 4000000, gasPrice: defaultGasPrice});
-while (txpool.status.pending > 0) {
-}
-var newContractAddress = getProxyFactoryListing();
-console.log("RESULT: newContractAddress=" + newContractAddress);
-var newToken = web3.eth.contract(tokenAbi).at(newContractAddress);
-var symbol = "NEWTOKEN";
-var name = "New Token";
-var decimals = 18;
-var initialSupply = new BigNumber("2000000").shift(18);
-var deployNewToken_1Tx = newToken.init(symbol, name, decimals, aliceAccount, initialSupply, {from: aliceAccount, data: tokenBin, gas: 6000000, gasPrice: defaultGasPrice});
-while (txpool.status.pending > 0) {
-}
-addAccount(newContractAddress, "New Token '" + newToken.symbol() + "' '" + newToken.name() + "'");
-addTokenBContractAddressAndAbi(newContractAddress, tokenAbi);
-printBalances();
-failIfTxStatusError(deployProxyContractTx, deployProxyContractMessage + " - Deploy New Token Contract");
-failIfTxStatusError(deployNewToken_1Tx, deployProxyContractMessage + " - New Token Contract Init");
-printTxData("deployProxyContractTx", deployProxyContractTx);
-printTxData("deployNewToken_1Tx", deployNewToken_1Tx);
-printProxyFactoryContractDetails();
-printTokenAContractDetails();
-printTokenBContractDetails();
-console.log("RESULT: ");
-
-
-console.log("RESULT: oldAddr=" + tokenAddress);
-console.log("RESULT: newAddr=" + newContractAddress);
-console.log("RESULT: oldCode=" + eth.getCode(tokenAddress));
-console.log("RESULT: newCode=" + eth.getCode(newContractAddress));
-
-for (var i = 0; i < 10; i++) {
-  var older = eth.getStorageAt(tokenAddress, i);
-  var newer = eth.getStorageAt(newContractAddress, i);
-  var olderText;
-  var newerText;
-  if (i == 2 || i == 3) {
-    olderText = web3.toAscii(older.replace(/00.*$/g,""));
-    newerText = web3.toAscii(newer.replace(/00.*$/g,""));
-  } else {
-    olderText = "";
-    newerText = "";
-  }
-  console.log("RESULT: old data[" + i + "]=" + older + " " + new BigNumber(older.substring(2), 16) + " " + olderText);
-  console.log("RESULT: new data[" + i + "]=" + newer + " " + new BigNumber(newer.substring(2), 16) + " " + newerText);
-}
-
-var oldBalanceKey = web3.sha3("000000000000000000000000" + contractOwnerAccount.substring(2) + "0000000000000000000000000000000000000000000000000000000000000007", {"encoding":"hex"});
-var older = eth.getStorageAt(tokenAddress, oldBalanceKey);
-console.log("RESULT: mapping(olderKey,7)=" + older + " " + new BigNumber(older.substring(2), 16));
-
-var newBalanceKey = web3.sha3("000000000000000000000000" + aliceAccount.substring(2) + "0000000000000000000000000000000000000000000000000000000000000007", {"encoding":"hex"});
-var newer = eth.getStorageAt(newContractAddress, newBalanceKey);
-console.log("RESULT: mapping(newerKey,7)=" + newer + " " + new BigNumber(newer.substring(2), 16));
 
 EOF
 grep "DATA: " $TEST1OUTPUT | sed "s/DATA: //" > $DEPLOYMENTDATA

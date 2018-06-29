@@ -365,156 +365,86 @@ function printTokenBContractDetails() {
 
 
 // -----------------------------------------------------------------------------
-// Club Contract
+// TransactionRequest
 // -----------------------------------------------------------------------------
-var clubContractAddress = null;
-var clubContractAbi = null;
-
-function addClubContractAddressAndAbi(address, clubAbi) {
-  clubContractAddress = address;
-  clubContractAbi = clubAbi;
-}
-
-function displaySplit(data) {
-  var eth1 = data[0];
-  var eth2 = data[1];
-  var eth3 = data[2];
-  var refund = data[3];
-  var total = eth1.add(eth2).add(eth3).add(refund);
-  return "[eth1=" + eth1.shift(-18) + "; eth2=" + eth2.shift(-18) + "; eth3=" + eth3.shift(-18) + "; refund=" + refund.shift(-18)  + "; total=" + total.shift(-18) + "]";
-}
-
-var clubFromBlock = 0;
-function printClubContractDetails() {
-  console.log("RESULT: clubContractAddress=" + clubContractAddress);
-  if (clubContractAddress != null && clubContractAbi != null) {
-    var contract = eth.contract(clubContractAbi).at(clubContractAddress);
-    console.log("RESULT: club.token=" + contract.token());
-    console.log("RESULT: club.initialised=" + contract.initialised());
-    console.log("RESULT: club.numberOfMembers=" + contract.numberOfMembers());
-    console.log("RESULT: club.getMembers=" + JSON.stringify(contract.getMembers()));
-    var i;
-    for (i = 0; i < contract.numberOfMembers(); i++) {
-      var member = contract.getMemberByIndex(i);
-      var data = contract.getMemberData(member);
-      console.log("RESULT: club.member[" + i + "]=" + member + " [" + data[0] + ", " + data[1] + ", '" + data[2] + "']");
-    }
-    console.log("RESULT: club.numberOfProposals=" + contract.numberOfProposals());
-    for (i = 0; i < contract.numberOfProposals(); i++) {
-      console.log("RESULT: club.getProposal[" + i + "]=" + JSON.stringify(contract.getProposal(i)));
-    }
-    console.log("RESULT: club.quorum=" + contract.quorum() + "%");
-    console.log("RESULT: club.quorumDecayPerWeek=" + contract.quorumDecayPerWeek() + "%");
-    console.log("RESULT: club.requiredMajority=" + contract.requiredMajority() + "%");
-
-    var now = new Date()/1000;
-    var line = "";
-    for (i = 0; i < 10; i++) {
-      var date = parseInt(now) + 60 * 60 * 24 * 7 * i;
-      line = line + i + "w=" + contract.getQuorum(now, date) + "% ";
-    }
-    console.log("RESULT: club.getQuorum(now, * weeks)=" + line);
-
-    var latestBlock = eth.blockNumber;
-
-    var newProposalEvents = contract.NewProposal({}, { fromBlock: clubFromBlock, toBlock: latestBlock });
-    i = 0;
-    newProposalEvents.watch(function (error, result) {
-      console.log("RESULT: NewProposal " + i++ + " #" + result.blockNumber + " " + JSON.stringify(result.args));
-      var proposal = contract.getProposal(result.args.proposalId);
-      console.log("RESULT: - proposal=" + JSON.stringify(proposal));
-      var votingStatus = contract.getVotingStatus(result.args.proposalId);
-      console.log("RESULT: - votingStatus: open=" + votingStatus[0] + " quorumReached=" + votingStatus[1] + " requiredMajority=" + votingStatus[2] + " yesPercent=" + votingStatus[3]);
-    });
-    newProposalEvents.stopWatching();
-
-    var votedEvents = contract.Voted({}, { fromBlock: clubFromBlock, toBlock: latestBlock });
-    i = 0;
-    votedEvents.watch(function (error, result) {
-      console.log("RESULT: Voted " + i++ + " #" + result.blockNumber + " " + JSON.stringify(result.args));
-      var votingStatus = contract.getVotingStatus(result.args.proposalId);
-      console.log("RESULT: - votingStatus: open=" + votingStatus[0] + " quorumReached=" + votingStatus[1] + " requiredMajority=" + votingStatus[2] + " yesPercent=" + votingStatus[3]);
-    });
-    votedEvents.stopWatching();
-
-    var voteResultEvents = contract.VoteResult({}, { fromBlock: clubFromBlock, toBlock: latestBlock });
-    i = 0;
-    voteResultEvents.watch(function (error, result) {
-      console.log("RESULT: VoteResult " + i++ + " #" + result.blockNumber + " " + JSON.stringify(result.args));
-      var votingStatus = contract.getVotingStatus(result.args.proposalId);
-      console.log("RESULT: - votingStatus: open=" + votingStatus[0] + " quorumReached=" + votingStatus[1] + " requiredMajority=" + votingStatus[2] + " yesPercent=" + votingStatus[3]);
-    });
-    voteResultEvents.stopWatching();
-
-    var memberAddedEvents = contract.MemberAdded({}, { fromBlock: clubFromBlock, toBlock: latestBlock });
-    i = 0;
-    memberAddedEvents.watch(function (error, result) {
-      console.log("RESULT: MemberAdded " + i++ + " #" + result.blockNumber + " " + JSON.stringify(result.args));
-    });
-    memberAddedEvents.stopWatching();
-
-    var memberRemovedEvents = contract.MemberRemoved({}, { fromBlock: clubFromBlock, toBlock: latestBlock });
-    i = 0;
-    memberRemovedEvents.watch(function (error, result) {
-      console.log("RESULT: MemberRemoved " + i++ + " #" + result.blockNumber + " " + JSON.stringify(result.args));
-    });
-    memberRemovedEvents.stopWatching();
-
-    var memberNameUpdatedEvents = contract.MemberNameUpdated({}, { fromBlock: clubFromBlock, toBlock: latestBlock });
-    i = 0;
-    memberNameUpdatedEvents.watch(function (error, result) {
-      console.log("RESULT: MemberNameUpdated " + i++ + " #" + result.blockNumber + " " + JSON.stringify(result.args));
-    });
-    memberNameUpdatedEvents.stopWatching();
-
-    var tokenUpdatedEvents = contract.TokenUpdated({}, { fromBlock: clubFromBlock, toBlock: latestBlock });
-    i = 0;
-    tokenUpdatedEvents.watch(function (error, result) {
-      console.log("RESULT: TokenUpdated " + i++ + " #" + result.blockNumber + " " + JSON.stringify(result.args));
-    });
-    tokenUpdatedEvents.stopWatching();
-
-    var tokensForNewMembersUpdatedEvents = contract.TokensForNewMembersUpdated({}, { fromBlock: clubFromBlock, toBlock: latestBlock });
-    i = 0;
-    tokensForNewMembersUpdatedEvents.watch(function (error, result) {
-      console.log("RESULT: TokensForNewMembersUpdated " + i++ + " #" + result.blockNumber + " " + JSON.stringify(result.args));
-    });
-    tokensForNewMembersUpdatedEvents.stopWatching();
-
-    var etherDepositedEvents = contract.EtherDeposited({}, { fromBlock: clubFromBlock, toBlock: latestBlock });
-    i = 0;
-    etherDepositedEvents.watch(function (error, result) {
-      console.log("RESULT: EtherDeposited " + i++ + " #" + result.blockNumber + " " + JSON.stringify(result.args));
-    });
-    etherDepositedEvents.stopWatching();
-
-    var etherTransferredEvents = contract.EtherTransferred({}, { fromBlock: clubFromBlock, toBlock: latestBlock });
-    i = 0;
-    etherTransferredEvents.watch(function (error, result) {
-      console.log("RESULT: EtherTransferred " + i++ + " #" + result.blockNumber + " " + JSON.stringify(result.args));
-    });
-    etherTransferredEvents.stopWatching();
-
-    clubFromBlock = latestBlock + 1;
+var txRequestFromBlock = {};
+function displayTxRequestDetails(msg, address, abi) {
+  var contract = eth.contract(abi).at(address);
+  if (txRequestFromBlock[address] == undefined) {
+    txRequestFromBlock[address] = baseBlock;
   }
-}
-
-
-function displayTxRequestData(msg, data) {
+  var data = contract.requestData();
   var addressValues = data[0];
   var boolValues = data[1];
   var uintValues = data[2];
   var uint8Values = data[3];
-  console.log("RESULT: " + msg + ": claimedBy=" + addressValues[0] + " createdBy=" + addressValues[1] + " owner=" + addressValues[2]);
-  console.log("RESULT:   feeRecipient=" + addressValues[3] + " bountyBenefactor=" + addressValues[4] + " toAddress=" + addressValues[5]);
-  console.log("RESULT:   isCancelled=" + boolValues[0] + " wasCalled=" + boolValues[1] + " wasSuccessful=" + boolValues[2]);
-  console.log("RESULT:   claimDeposit=" + uintValues[0] + " fee=" + uintValues[1] + " feeOwed=" + uintValues[2] +
-    " bounty=" + uintValues[3] + " bountyOwed=" + uintValues[4] + " claimWindowSize=" + uintValues[5] + " freezePeriod=" + uintValues[6] +
-    " reservedWindowSize=" + uintValues[7] + " temporalUnit=" + uintValues[8]);
-  console.log("RESULT:   windowSize=" + uintValues[9] + " windowStart=" + uintValues[10] + " callGas=" + uintValues[11] +
-    " callValue=" + uintValues[12] + " gasPrice=" + uintValues[13] + " requiredDeposit=" + uintValues[14]);
-  console.log("RESULT:   paymentModifier=" + uint8Values[0]);
+  console.log("RESULT: ----- TxRequest '" + msg + "' -----");
+  console.log("RESULT: txRequest.address=" + address);
+  console.log("RESULT:   claimData.claimedBy=" + addressValues[0]);
+  console.log("RESULT:   meta.createdBy=" + addressValues[1]);
+  console.log("RESULT:   meta.owner=" + addressValues[2]);
+  console.log("RESULT:   paymentData.feeRecipient=" + addressValues[3]);
+  console.log("RESULT:   paymentData.bountyBenefactor=" + addressValues[4]);
+  console.log("RESULT:   txnData.toAddress=" + addressValues[5]);
+  console.log("RESULT:   meta.isCancelled=" + boolValues[0]);
+  console.log("RESULT:   meta.wasCalled=" + boolValues[1]);
+  console.log("RESULT:   meta.wasSuccessful=" + boolValues[2]);
+  console.log("RESULT:   claimData.claimDeposit=" + uintValues[0].shift(-18).toFixed(18) + " " + uintValues[0]);
+  console.log("RESULT:   paymentData.fee=" + uintValues[1].shift(-18).toFixed(18) + " " + uintValues[1]);
+  console.log("RESULT:   paymentData.feeOwed=" + uintValues[2].shift(-18).toFixed(18) + " " + uintValues[2]);
+  console.log("RESULT:   paymentData.bounty=" + uintValues[3].shift(-18).toFixed(18) + " " + uintValues[3]);
+  console.log("RESULT:   paymentData.bountyOwed=" + uintValues[4].shift(-18).toFixed(18) + " " + uintValues[4]);
+  console.log("RESULT:   schedule.claimWindowSize=" + uintValues[5]);
+  console.log("RESULT:   (schedule.firstClaimBlock=" + (uintValues[10] - uintValues[6] - uintValues[5]) + " = freezeStart-claimWindowSize)");
+  console.log("RESULT:   schedule.freezePeriod=" + uintValues[6]);
+  console.log("RESULT:   (schedule.freezeStart=" + (uintValues[10] - uintValues[6]) + ") = windowStart - freezePeriod");
+  console.log("RESULT:   schedule.reservedWindowSize=" + uintValues[7]);
+  console.log("RESULT:   (schedule.reservedWindowEnd=" + (parseInt(uintValues[10]) + parseInt(uintValues[7])) + ") = windowStart + reserveWindowSize");
+  console.log("RESULT:   schedule.temporalUnit=" + uintValues[8]);
+  console.log("RESULT:   schedule.windowSize=" + uintValues[9]);
+  console.log("RESULT:   schedule.windowStart=" + uintValues[10]);
+  console.log("RESULT:   (schedule.windowEnd=" + (parseInt(uintValues[10]) + parseInt(uintValues[9])) + ") = windowStart + windowSize");
+  console.log("RESULT:   txnData.callGas=" + uintValues[11]);
+  console.log("RESULT:   txnData.callValue=" + uintValues[12]);
+  console.log("RESULT:   txnData.gasPrice=" + uintValues[13].shift(-18).toFixed(18) + " " + uintValues[13]);
+  console.log("RESULT:   claimData.requiredDeposit=" + uintValues[14].shift(-18).toFixed(18) + " " + uintValues[14]);
+  console.log("RESULT:   claimData.paymentModifier=" + uint8Values[0]);
+  console.log("RESULT:   txnData.callData=" + contract.callData());
+
+  var i;
+  var latestBlock = eth.blockNumber;
+
+  var abortedEvents = contract.Aborted({}, { fromBlock: txRequestFromBlock[address], toBlock: latestBlock });
+  i = 0;
+  abortedEvents.watch(function (error, result) {
+    console.log("RESULT: txRequest.Aborted " + i++ + " #" + result.blockNumber + " " + JSON.stringify(result.args));
+  });
+  abortedEvents.stopWatching();
+
+  var cancelledEvents = contract.Cancelled({}, { fromBlock: txRequestFromBlock[address], toBlock: latestBlock });
+  i = 0;
+  cancelledEvents.watch(function (error, result) {
+    console.log("RESULT: txRequest.Cancelled " + i++ + " #" + result.blockNumber + " " + JSON.stringify(result.args));
+  });
+  cancelledEvents.stopWatching();
+
+  var claimedEvents = contract.Claimed({}, { fromBlock: txRequestFromBlock[address], toBlock: latestBlock });
+  i = 0;
+  claimedEvents.watch(function (error, result) {
+    console.log("RESULT: txRequest.Claimed " + i++ + " #" + result.blockNumber + " " + JSON.stringify(result.args));
+  });
+  claimedEvents.stopWatching();
+
+  var executedEvents = contract.Executed({}, { fromBlock: txRequestFromBlock[address], toBlock: latestBlock });
+  i = 0;
+  executedEvents.watch(function (error, result) {
+    console.log("RESULT: txRequest.Executed " + i++ + " #" + result.blockNumber + " " + JSON.stringify(result.args));
+  });
+  executedEvents.stopWatching();
+
+  txRequestFromBlock[address] = latestBlock + 1;
 }
+
 
 // -----------------------------------------------------------------------------
 // RequestFactory Contract

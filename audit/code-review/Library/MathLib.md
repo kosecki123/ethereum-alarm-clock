@@ -7,9 +7,12 @@ Source file [../../../contracts/Library/MathLib.sol](../../../contracts/Library/
 <hr />
 
 ```javascript
+// BK Ok
 pragma solidity ^0.4.21;
 
+// BK Ok
 library MathLib {
+    // BK Ok - new BigNumber("57896044618658097711785492504343953926634992332820282019728792003956564819967").add(1).toString(16) => "8000000000000000000000000000000000000000000000000000000000000000"
     uint constant INT_MAX = 57896044618658097711785492504343953926634992332820282019728792003956564819967;  // 2**255 - 1
     /*
      * Subtracts b from a in a manner such that zero is returned when an
@@ -51,12 +54,17 @@ library MathLib {
     /*
      * Return the larger of a or b.  Returns a if a == b.
      */
+    // BK Ok - Pure function. Not used by other contracts in this repo currently
     function max(uint a, uint b) 
         public pure returns (uint)
     {
+        // BK Ok
         if (a >= b) {
+            // BK Ok
             return a;
+        // BK Ok
         } else {
+            // BK Ok
             return b;
         }
     }
@@ -64,12 +72,17 @@ library MathLib {
     /*
      * Return the larger of a or b.  Returns a if a == b.
      */
+    // BK Ok - Pure function
     function min(uint a, uint b) 
         public pure returns (uint)
     {
+        // BK Ok
         if (a <= b) {
+            // BK Ok
             return a;
+        // BK Ok
         } else {
+            // BK Ok
             return b;
         }
     }
@@ -79,10 +92,13 @@ library MathLib {
      * exception if casting to signed integer would result in a negative
      * number.
      */
+    // BK Ok - Pure function. Not used by other contracts in this repo currently
     function safeCastSigned(uint a) 
         public pure returns (int)
     {
+        // BK Ok
         assert(a <= INT_MAX);
+        // BK Ok
         return int(a);
     }
     
