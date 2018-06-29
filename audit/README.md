@@ -1,3 +1,5 @@
+Code [252a7a9](https://github.com/ethereum-alarm-clock/ethereum-alarm-clock/commit/252a7a92bee984ff25bdb75189b3a4cc9748fadb).
+
 The user interface for testing the Ethereum Alarm Clock smart contracts on the Kovan testnet is at http://chronologic-dev.s3-website-us-east-1.amazonaws.com/ .
 
 The documentation for the Ethereum Alarm Clock is at https://ethereum-alarm-clock.readthedocs.io/en/latest/index.html .
