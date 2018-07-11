@@ -16,6 +16,7 @@ The documentation for the Ethereum Alarm Clock is at https://ethereum-alarm-cloc
 * [ ] **LOW IMPORTANCE** The constructors for *RequestFactory.sol*, *Scheduler/BlockScheduler.sol*, *Scheduler/TimestampScheduler.sol* and *_examples/DelayedPayment.sol* should be updated to use the `constructor(...)` keyword introduced in [Solidity 0.4.21](https://github.com/ethereum/solidity/releases/tag/v0.4.22), if any source code is updated
 * [ ] **LOW IMPORTANCE** `RequestLib.getEXECUTION_GAS_OVERHEAD()` should be using the `pure` modifier instead of the `view` modifier, if any source code is updated
 * [ ] **LOW IMPORTANCE** Events in libraries are not automatically included in the ABI for contracts that call the library. The current workaround is to duplicate the events in the contracts that call the library. One [reference](https://ethereum.stackexchange.com/questions/11137/watching-events-defined-in-libraries). In EAC for example, RequestLib's `Aborted(...)`, `Cancelled(...)`, `Claimed()` and `Executed(...)` events are not available in the ABI for *TransactionRequestCore* - [test/TransactionRequestCore.js#L46](https://github.com/bokkypoobah/EthereumAlarmClockAudit/blob/acd8eeafc2006d7d9cdeb03c9c17d1a43b9a4994/audit/test/TransactionRequestCore.js#L46)
+* [ ] **LOW IMPORTANCE** The comments for `PaymentLib.validateEndowment(...)` referring to *maxMultiplier* may be out of date 
 
 <br />
 
@@ -35,7 +36,7 @@ The documentation for the Ethereum Alarm Clock is at https://ethereum-alarm-cloc
 * [x] Deploy Schedulers
   * [x] Deploy BlockScheduler
   * [x] Deploy TimestampScheduler
-* [ ] Execute Delayed Payment
+* [x] Execute Delayed Payment
   * [x] Schedule Delayed Payment
   * [x] Claim Delayed Payment
   * [x] Execute Delayed Payment
@@ -102,9 +103,9 @@ The documentation for the Ethereum Alarm Clock is at https://ethereum-alarm-cloc
   * [ ] library ExecutionLib
 * [x] [code-review/Library/MathLib.md](code-review/Library/MathLib.md)
   * [x] library MathLib
-* [ ] [code-review/Library/PaymentLib.md](code-review/Library/PaymentLib.md)
-  * [ ] library PaymentLib
-    * [ ] using SafeMath for uint;
+* [x] [code-review/Library/PaymentLib.md](code-review/Library/PaymentLib.md)
+  * [x] library PaymentLib
+    * [x] using SafeMath for uint;
 * [ ] [code-review/Library/RequestLib.md](code-review/Library/RequestLib.md)
   * [ ] library RequestLib
     * [ ] using ClaimLib for ClaimLib.ClaimData;
@@ -113,8 +114,8 @@ The documentation for the Ethereum Alarm Clock is at https://ethereum-alarm-cloc
     * [ ] using RequestMetaLib for RequestMetaLib.RequestMeta;
     * [ ] using RequestScheduleLib for RequestScheduleLib.ExecutionWindow;
     * [ ] using SafeMath for uint;
-* [ ] [code-review/Library/RequestMetaLib.md](code-review/Library/RequestMetaLib.md)
-  * [ ] library RequestMetaLib
+* [x] [code-review/Library/RequestMetaLib.md](code-review/Library/RequestMetaLib.md)
+  * [x] library RequestMetaLib
 * [ ] [code-review/Library/RequestScheduleLib.md](code-review/Library/RequestScheduleLib.md)
   * [ ] library RequestScheduleLib
     * [ ] using SafeMath for uint;

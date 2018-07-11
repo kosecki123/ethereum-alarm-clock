@@ -7,14 +7,17 @@ Source file [../../../contracts/Library/RequestMetaLib.sol](../../../contracts/L
 <hr />
 
 ```javascript
+// BK Ok
 pragma solidity ^0.4.21;
 
 /**
  * @title RequestMetaLib
  * @dev Small library holding all the metadata about a TransactionRequest.
  */
+// BK Ok
 library RequestMetaLib {
 
+    // BK Next block Ok
     struct RequestMeta {
         address owner;              /// The address that created this request.
 
