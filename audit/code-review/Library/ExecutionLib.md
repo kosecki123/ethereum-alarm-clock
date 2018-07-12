@@ -42,9 +42,12 @@ library ExecutionLib {
      * may consume.  The EXTRA_GAS value represents the overhead involved in
      * request execution.
      */
+    // BK Ok - Internal view function, called by validateCallGas(...) below
     function CALL_GAS_CEILING(uint EXTRA_GAS) 
         internal view returns (uint)
     {
+        // BK NOTE - validation on one block gasLimit, but execution will be one a different block, most likely with a different block gasLimit
+        // BK Ok
         return block.gaslimit - EXTRA_GAS;
     }
 
@@ -52,18 +55,23 @@ library ExecutionLib {
      * @dev Validation: ensure that the callGas is not above the total possible gas
      * for a call.
      */
+    // BK Ok - Internal view function, called by RequestLib.validate(...)
     function validateCallGas(uint callGas, uint EXTRA_GAS)
         internal view returns (bool)
     {
+        // BK NOTE - < instead of <=
+        // BK Ok
         return callGas < CALL_GAS_CEILING(EXTRA_GAS);
     }
 
     /*
      * @dev Validation: ensure that the toAddress is not set to the empty address.
      */
+    // BK Ok - Internal pure function, called by RequestLib.validate(...)
     function validateToAddress(address toAddress)
         internal pure returns (bool)
     {
+        // BK Ok
         return toAddress != 0x0;
     }
 }

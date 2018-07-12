@@ -345,6 +345,7 @@ library RequestLib {
 
         // Send the fee. This transaction may also fail but can be called again after
         // execution.
+        // BK Ok - feeRecipient <> 0x0 for feeOwed > 0 from logic above
         self.paymentData.sendFee();
 
         // Compute the bounty amount.
@@ -506,6 +507,7 @@ library RequestLib {
             // Transfers the rewardPayment.
             if (rewardOwed > 0) {
                 self.paymentData.bountyOwed = 0;
+                // BK Ok - Limited to 2,300 gas, false return status throws and error
                 rewardBenefactor.transfer(rewardOwed);
             }
         }
