@@ -47,6 +47,25 @@ The documentation for the Ethereum Alarm Clock is at https://ethereum-alarm-cloc
 
 ## Code Review
 
+### Exit Points For Ethers
+
+Check exit points for ethers
+
+#### Core
+* [ ] RequestFactory.sol: msg.sender.transfer(msg.value);
+* [ ] Library/ClaimLib.sol: return self.claimedBy.send(depositAmount);
+* [x] Library/PaymentLib.sol: return self.feeRecipient.send(feeAmount);
+* [x] Library/PaymentLib.sol: return self.bountyBenefactor.send(bountyAmount);
+* [ ] Library/RequestLib.sol: rewardBenefactor.transfer(rewardOwed);
+* [ ] Library/RequestLib.sol: return recipient.send(ownerRefund);
+
+#### Test And Examples
+* [ ] _examples/DelayedPayment.sol: recipient.transfer(address(this).balance);
+* [ ] _examples/RecurringPayment.sol: recipient.transfer(paymentValue);
+* [ ] _test/Proxy.sol: receipient.transfer(msg.value);
+
+<br />
+
 ### contract
 
 * [ ] [code-review/CloneFactory.md](code-review/CloneFactory.md)

@@ -84,10 +84,16 @@ contract RequestFactory is RequestFactoryInterface, CloneFactory {
         requests[transactionRequest] = true;
 
         // Log the creation.
+        // BK NOTE - event RequestCreated(address request, address indexed owner, int indexed bucket, uint[12] params);
+        // BK Ok
         emit RequestCreated(
+            // BK Ok
             transactionRequest,
+            // BK Ok - owner = meta.owner
             _addressArgs[0],
+            // BK Ok - int bucket = uint windowStart => schedule.windowStart, RequestScheduleLib.TemporalUnit unit => schedule.temporalUnit
             getBucket(_uintArgs[7], RequestScheduleLib.TemporalUnit(_uintArgs[5])),
+            // BK Ok
             _uintArgs
         );
 
@@ -183,17 +189,22 @@ contract RequestFactory is RequestFactoryInterface, CloneFactory {
     }
 
     /// Mapping to hold known requests.
+    // BK Ok
     mapping (address => bool) requests;
 
+    // BK Ok - View function
     function isKnownRequest(address _address)
         public view returns (bool isKnown)
     {
+        // BK Ok
         return requests[_address];
     }
 
+    // BK Ok - Pure function returning int. Only called for generating `RequestCreated` event log
     function getBucket(uint windowStart, RequestScheduleLib.TemporalUnit unit)
         public pure returns(int)
     {
+        // BK Ok
         uint bucketSize;
         /* since we want to handle both blocks and timestamps
             and do not want to get into case where buckets overlaps
@@ -201,17 +212,27 @@ contract RequestFactory is RequestFactoryInterface, CloneFactory {
             timestamp buckets are going to be positive ints
             we'll overflow after 2**255-1 blocks instead of 2**256-1 since we encoding this on int256
         */
+        // BK Ok
         int sign;
 
+        // BK Ok
         if (unit == RequestScheduleLib.TemporalUnit.Blocks) {
+            // BK Ok
             bucketSize = BLOCKS_BUCKET_SIZE;
+            // BK Ok
             sign = -1;
+        // BK Ok
         } else if (unit == RequestScheduleLib.TemporalUnit.Timestamp) {
+            // BK Ok
             bucketSize = TIMESTAMP_BUCKET_SIZE;
+            // BK Ok
             sign = 1;
+        // BK Ok
         } else {
+            // BK Ok
             revert();
         }
+        // BK Ok
         return sign * int(windowStart - (windowStart % bucketSize));
     }
 }

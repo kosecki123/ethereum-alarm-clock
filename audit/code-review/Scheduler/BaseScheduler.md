@@ -62,6 +62,10 @@ contract BaseScheduler is SchedulerInterface {
     {
         RequestFactoryInterface factory = RequestFactoryInterface(factoryAddress);
 
+        // BK NOTE - The `computeEndowment(...)` and `require(msg.value >= endowment)` check is a duplicate of
+        // BK NOTE - factory.createValidatedRequest(...) -> factory.validateRequestParams(...) -> RequestLib.validate(...) ->
+        // BK NOTE - PaymentLib.validateEndowment(...)
+        // BK Ok
         uint endowment = computeEndowment(
             _uintArgs[6], //bounty
             _uintArgs[5], //fee
@@ -70,6 +74,7 @@ contract BaseScheduler is SchedulerInterface {
             _uintArgs[4]  //gasPrice
         );
 
+        // BK Ok
         require(msg.value >= endowment);
 
         if (temporalUnit == RequestScheduleLib.TemporalUnit.Blocks) {
