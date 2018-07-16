@@ -16,7 +16,9 @@ The documentation for the Ethereum Alarm Clock is at https://ethereum-alarm-cloc
 * [ ] **LOW IMPORTANCE** The constructors for *RequestFactory.sol*, *Scheduler/BlockScheduler.sol*, *Scheduler/TimestampScheduler.sol* and *_examples/DelayedPayment.sol* should be updated to use the `constructor(...)` keyword introduced in [Solidity 0.4.21](https://github.com/ethereum/solidity/releases/tag/v0.4.22), if any source code is updated
 * [ ] **LOW IMPORTANCE** `RequestLib.getEXECUTION_GAS_OVERHEAD()` should be using the `pure` modifier instead of the `view` modifier, if any source code is updated
 * [ ] **LOW IMPORTANCE** Events in libraries are not automatically included in the ABI for contracts that call the library. The current workaround is to duplicate the events in the contracts that call the library. One [reference](https://ethereum.stackexchange.com/questions/11137/watching-events-defined-in-libraries). In EAC for example, RequestLib's `Aborted(...)`, `Cancelled(...)`, `Claimed()` and `Executed(...)` events are not available in the ABI for *TransactionRequestCore* - [test/TransactionRequestCore.js#L46](https://github.com/bokkypoobah/EthereumAlarmClockAudit/blob/acd8eeafc2006d7d9cdeb03c9c17d1a43b9a4994/audit/test/TransactionRequestCore.js#L46)
-* [ ] **LOW IMPORTANCE** The comments for `PaymentLib.validateEndowment(...)` referring to *maxMultiplier* may be out of date 
+* [ ] **LOW IMPORTANCE** The comments for `PaymentLib.validateEndowment(...)` referring to *maxMultiplier* may be out of date
+* [ ] **LOW IMPORTANCE** ClaimLib.claim(...) has a `bool` return status that is not set, and is not used in `RequestLib.claim(...)`
+* [ ] **LOW IMPORTANCE** The comment for `RequestScheduleLib.isBeforeClaimWindow(...)` refers to *freeze period* but should refer to *claim period*
 
 <br />
 
@@ -40,6 +42,30 @@ The documentation for the Ethereum Alarm Clock is at https://ethereum-alarm-cloc
   * [x] Schedule Delayed Payment
   * [x] Claim Delayed Payment
   * [x] Execute Delayed Payment
+
+<br />
+
+<hr />
+
+## Notes
+
+### Periods
+
+The following fields are from the DelayedPayment testing results. Items in brackets are calculated on the fly. Items are rearranged into their order:
+
+```
+schedule.claimWindowSize=255
+schedule.freezePeriod=10
+schedule.reservedWindowSize=16
+schedule.windowSize=255
+schedule.temporalUnit=1
+
+(schedule.firstClaimBlock=99 = freezeStart-claimWindowSize)
+(schedule.freezeStart=354) = windowStart - freezePeriod
+schedule.windowStart=364
+(schedule.reservedWindowEnd=380) = windowStart + reserveWindowSize
+(schedule.windowEnd=619) = windowStart + windowSize
+```
 
 <br />
 
