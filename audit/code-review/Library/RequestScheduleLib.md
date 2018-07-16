@@ -7,15 +7,19 @@ Source file [../../../contracts/Library/RequestScheduleLib.sol](../../../contrac
 <hr />
 
 ```javascript
+// BK Ok
 pragma solidity ^0.4.21;
 
+// BK Ok
 import "contracts/zeppelin/SafeMath.sol";
 
 /**
  * @title RequestScheduleLib
  * @dev Library containing the logic for request scheduling.
  */
+// BK Ok
 library RequestScheduleLib {
+    // BK Ok
     using SafeMath for uint;
 
     /**
@@ -25,12 +29,14 @@ library RequestScheduleLib {
      * Blocks: execution schedule determined by block.number
      * Timestamp: execution schedule determined by block.timestamp
      */
+    // BK Next block Ok
     enum TemporalUnit {
         Null,           // 0
         Blocks,         // 1
         Timestamp       // 2
     }
 
+    // BK Next block Ok
     struct ExecutionWindow {
 
         TemporalUnit temporalUnit;      /// The type of unit used to measure time.
@@ -51,6 +57,7 @@ library RequestScheduleLib {
      * @param self The ExecutionWindow object.
      * @return The unsigned integer representation of `now` in appropiate temporal units.
      */
+    // BK Ok - Public view function
     function getNow(ExecutionWindow storage self) 
         public view returns (uint)
     {
@@ -92,9 +99,12 @@ library RequestScheduleLib {
     /*
      *  Helper: computes the end of the execution window.
      */
+    // BK NOTE - windowEnd = windowStart + windowSize
+    // BK Ok - View function
     function windowEnd(ExecutionWindow storage self)
         internal view returns (uint)
     {
+        // BK Ok
         return self.windowStart.add(self.windowSize);
     }
 
@@ -102,54 +112,75 @@ library RequestScheduleLib {
      *  Helper: computes the end of the reserved portion of the execution
      *  window.
      */
+    // BK NOTE - reserveWindowEnd = windowStart + reserveWindowSize
+    // BK Ok - View function
     function reservedWindowEnd(ExecutionWindow storage self)
         internal view returns (uint)
     {
+        // BK Ok
         return self.windowStart.add(self.reservedWindowSize);
     }
 
     /*
      *  Helper: computes the time when the request will be frozen until execution.
      */
+    // BK NOTE - freezeStart = windowStart - freezePeriod
+    // BK Ok - View function
     function freezeStart(ExecutionWindow storage self) 
         internal view returns (uint)
     {
+        // BK Ok
         return self.windowStart.sub(self.freezePeriod);
     }
 
     /*
      *  Helper: computes the time when the request will be frozen until execution.
      */
+    // BK NOTE - firstClaimBlock = freezeStart - claimWindowSize
+    // BK NOTE - firstClaimBlock = windowStart - freezePeriod - claimWindowSize
+    // BK Ok - View function
     function firstClaimBlock(ExecutionWindow storage self) 
         internal view returns (uint)
     {
+        // BK Ok
         return freezeStart(self).sub(self.claimWindowSize);
     }
 
     /*
      *  Helper: Returns boolean if we are before the execution window.
      */
+    // BK NOTE - isBeforeWindow = now < windowStart
+    // BK Ok - View function
     function isBeforeWindow(ExecutionWindow storage self)
         internal view returns (bool)
     {
+        // BK Ok
         return getNow(self) < self.windowStart;
     }
 
     /*
      *  Helper: Returns boolean if we are after the execution window.
      */
+    // BK NOTE - isAfterWindow = now > windowEnd
+    // BK NOTE - isAfterWindow = now > windowStart + windowSize
+    // BK Ok - View function
     function isAfterWindow(ExecutionWindow storage self) 
         internal view returns (bool)
     {
+        // BK Ok
         return getNow(self) > windowEnd(self);
     }
 
     /*
      *  Helper: Returns boolean if we are inside the execution window.
      */
+    // BK NOTE - inWindow = windowStart <= now <= windowEnd
+    // BK NOTE - inWindow = windowStart <= now <= windowStart + windowSize
+    // BK Ok - View function
     function inWindow(ExecutionWindow storage self)
         internal view returns (bool)
     {
+        // BK Ok
         return self.windowStart <= getNow(self) && getNow(self) < windowEnd(self);
     }
 
@@ -157,38 +188,55 @@ library RequestScheduleLib {
      *  Helper: Returns boolean if we are inside the reserved portion of the
      *  execution window.
      */
+    // BK NOTE - inReservedWindow = windowStart <= now <= reserveWindowEnd
+    // BK NOTE - inReservedWindow = windowStart <= now <= windowStart + reserveWindowSize
+    // BK Ok - View function
     function inReservedWindow(ExecutionWindow storage self)
         internal view returns (bool)
     {
+        // BK Ok
         return self.windowStart <= getNow(self) && getNow(self) < reservedWindowEnd(self);
     }
 
     /*
      * @dev Helper: Returns boolean if we are inside the claim window.
      */
+    // BK NOTE - inClaimWindow = firstClaimBlock <= now <= freezeStart
+    // BK NOTE - inClaimWindow = windowStart - freezePeriod - claimWindowSize <= now <= windowStart - freezePeriod
+    // BK Ok - View function
     function inClaimWindow(ExecutionWindow storage self) 
         internal view returns (bool)
     {
         /// Checks that the firstClaimBlock is in the past or now.
         /// Checks that now is before the start of the freezePeriod.
+        // BK Ok
         return firstClaimBlock(self) <= getNow(self) && getNow(self) < freezeStart(self);
     }
 
     /*
      *  Helper: Returns boolean if we are before the freeze period.
      */
+    // BK NOTE - isBeforeFreeze = now < freezeStart
+    // BK NOTE - isBeforeFreeze = now < windowStart - freezePeriod
+    // BK Ok - View function
     function isBeforeFreeze(ExecutionWindow storage self) 
         internal view returns (bool)
     {
+        // BK Ok
         return getNow(self) < freezeStart(self);
     }
 
+    // BK NOTE - Comment incorrect
     /*
      *  Helper: Returns boolean if we are before the freeze period.
      */
+    // BK NOTE - isBeforeClaimWindow = now < firstClaimBlock
+    // BK NOTE - isBeforeClaimWindow = now < windowStart - freezePeriod - claimWindowSize
+    // BK Ok - View function
     function isBeforeClaimWindow(ExecutionWindow storage self)
         internal view returns (bool)
     {
+        // BK Ok
         return getNow(self) < firstClaimBlock(self);
     }
 
