@@ -61,6 +61,7 @@ library RequestScheduleLib {
     function getNow(ExecutionWindow storage self) 
         public view returns (uint)
     {
+        // BK Ok
         return _getNow(self.temporalUnit);
     }
 
@@ -68,16 +69,22 @@ library RequestScheduleLib {
      * @dev Internal function to return the `now` based on the appropiate temporal units.
      * @param _temporalUnit The assigned TemporalUnit to this transaction.
      */
+    // BK Ok - View function
     function _getNow(TemporalUnit _temporalUnit) 
         internal view returns (uint)
     {
+        // BK Ok
         if (_temporalUnit == TemporalUnit.Timestamp) {
+            // BK Ok
             return block.timestamp;
         } 
+        // BK Ok
         if (_temporalUnit == TemporalUnit.Blocks) {
+            // BK Ok
             return block.number;
         }
         /// Only reaches here if the unit is unset, unspecified or unsupported.
+        // BK Ok
         revert();
     }
 
@@ -85,14 +92,22 @@ library RequestScheduleLib {
      * @dev The modifier that will be applied to the bounty value depending
      * on when a call was claimed.
      */
+    // BK NOTE - paymentModifier = (now - firstClaimBlock) x 100 / claimWindowSize
+    // BK NOTE - 0 = 0% when claimed at the firstClaimBlock, 100 = 100% when claimed just before the freeze period
+    // BK Ok - View function
     function computePaymentModifier(ExecutionWindow storage self) 
         internal view returns (uint8)
     {        
+        // BK Ok
         uint paymentModifier = (getNow(self).sub(firstClaimBlock(self)))
             .mul(100)
-            .div(self.claimWindowSize); 
+            .div(self.claimWindowSize);
+        // BK NOTE - Called from RequestLib.claim(...) where there is a check to RequestLib.isClaimable(...)
+        // BK NOTE - which checks RequestScheduleLib.inClaimWindow(...) below
+        // BK Ok 
         assert(paymentModifier <= 100); 
 
+        // BK Ok
         return uint8(paymentModifier);
     }
 
@@ -250,9 +265,11 @@ library RequestScheduleLib {
      * @param _windowSize The size of the execution window.
      * @return True if the reservedWindowSize is within the windowSize.
      */
+    // BK Ok - Pure function
     function validateReservedWindowSize(uint _reservedWindowSize, uint _windowSize)
         public pure returns (bool)
     {
+        // BK Ok
         return _reservedWindowSize <= _windowSize;
     }
 
@@ -263,18 +280,24 @@ library RequestScheduleLib {
      * @param _windowStart The time in the future which represents the start of the execution window.
      * @return True if the windowStart is at least freezePeriod amount of time in the future.
      */
+    // BK NOTE - If now + freezePeriod == windowStart, the claim period will have ended
+    // BK Ok - View function
     function validateWindowStart(TemporalUnit _temporalUnit, uint _freezePeriod, uint _windowStart) 
         public view returns (bool)
     {
+        // BK Ok
         return _getNow(_temporalUnit).add(_freezePeriod) <= _windowStart;
     }
 
     /*
      *  Validation: ensure that the temporal unit passed in is constrained to 0 or 1
      */
+    // BK Ok - Pure function
     function validateTemporalUnit(uint _temporalUnitAsUInt) 
         public pure returns (bool)
     {
+        // BK NOTE - First part of the expression is redundant
+        // BK Ok
         return (_temporalUnitAsUInt != uint(TemporalUnit.Null) &&
             (_temporalUnitAsUInt == uint(TemporalUnit.Blocks) ||
             _temporalUnitAsUInt == uint(TemporalUnit.Timestamp))

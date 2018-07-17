@@ -161,9 +161,9 @@ Check exit points for ethers
     * [ ] using SafeMath for uint;
 * [x] [code-review/Library/RequestMetaLib.md](code-review/Library/RequestMetaLib.md)
   * [x] library RequestMetaLib
-* [ ] [code-review/Library/RequestScheduleLib.md](code-review/Library/RequestScheduleLib.md)
-  * [ ] library RequestScheduleLib
-    * [ ] using SafeMath for uint;
+* [x] [code-review/Library/RequestScheduleLib.md](code-review/Library/RequestScheduleLib.md)
+  * [x] library RequestScheduleLib
+    * [x] using SafeMath for uint;
 
 <br />
 
