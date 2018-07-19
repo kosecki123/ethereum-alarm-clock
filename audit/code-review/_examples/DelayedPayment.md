@@ -7,28 +7,36 @@ Source file [../../../contracts/_examples/DelayedPayment.sol](../../../contracts
 <hr />
 
 ```javascript
+// BK Ok
 pragma solidity ^0.4.21;
 
+// BK Ok
 import "contracts/Interface/SchedulerInterface.sol";
 
 /// Example of using the Scheduler from a smart contract to delay a payment.
+// BK Ok
 contract DelayedPayment {
 
+    // BK Ok
     SchedulerInterface public scheduler;
     
+    // BK Next 3 Ok
     uint lockedUntil;
     address recipient;
     address public scheduledTransaction;
 
+    // BK Ok
     function DelayedPayment(
         address _scheduler,
         uint    _numBlocks,
         address _recipient
     )  public payable {
+        // BK Next 3 Ok
         scheduler = SchedulerInterface(_scheduler);
         lockedUntil = block.number + _numBlocks;
         recipient = _recipient;
 
+        // BK Ok
         scheduledTransaction = scheduler.schedule.value(0.1 ether)( // 0.1 ether is to pay for gas, bounty and fee
             this,                   // send to self
             "",                     // and trigger fallback function
@@ -45,22 +53,33 @@ contract DelayedPayment {
         );
     }
 
+    // BK Ok
     function () public payable {
+        // BK Ok
         if (msg.value > 0) { //this handles recieving remaining funds sent while scheduling (0.1 ether)
+            // BK Ok
             return;
+        // BK Ok
         } else if (address(this).balance > 0) {
+            // BK Ok
             payout();
+        // BK Ok
         } else {
+            // BK Ok
             revert();
         }
     }
 
+    // BK Ok
     function payout()
         public returns (bool)
     {
+        // BK Ok
         require(block.number >= lockedUntil);
         
+        // BK Ok
         recipient.transfer(address(this).balance);
+        // BK Ok
         return true;
     }
 }

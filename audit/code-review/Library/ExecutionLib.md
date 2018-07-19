@@ -7,14 +7,17 @@ Source file [../../../contracts/Library/ExecutionLib.sol](../../../contracts/Lib
 <hr />
 
 ```javascript
+// BK Ok
 pragma solidity ^0.4.21;
 
 /**
  * @title ExecutionLib
  * @dev Contains the logic for executing a scheduled transaction.
  */
+// BK Ok
 library ExecutionLib {
 
+    // BK Next block Ok
     struct ExecutionData {
         address toAddress;                  /// The destination of the transaction.
         bytes callData;                     /// The bytecode that will be sent with the transaction.
@@ -27,12 +30,15 @@ library ExecutionLib {
      * @dev Send the transaction according to the parameters outlined in ExecutionData.
      * @param self The ExecutionData object.
      */
+    // BK Ok - Internal function
     function sendTransaction(ExecutionData storage self)
         internal returns (bool)
     {
         /// Should never actually reach this require check, but here in case.
+        // BK Ok
         require(self.gasPrice == tx.gasprice);
         /* solium-disable security/no-call-value */
+        // BK Ok
         return self.toAddress.call.value(self.callValue).gas(self.callGas)(self.callData);
     }
 

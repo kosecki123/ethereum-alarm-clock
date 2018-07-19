@@ -2,11 +2,14 @@
 
 Source file [../../contracts/CloneFactory.sol](../../contracts/CloneFactory.sol).
 
+The original source of this exact version of this code can be found at [https://github.com/optionality/clone-factory/blob/d7a76aacbf73fdd348e78ba0b750d83294bd722e/contracts/CloneFactory.sol](https://github.com/optionality/clone-factory/blob/d7a76aacbf73fdd348e78ba0b750d83294bd722e/contracts/CloneFactory.sol).
+
 <br />
 
 <hr />
 
 ```javascript
+// BK Ok
 pragma solidity ^0.4.19; // solhint-disable-line compiler-fixed
 
 /*
@@ -44,19 +47,30 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  * For the bytecode annotation please see the `bytecode-annotation.txt` document at the root of this project.
  * Briefly, this contract will create a "clone" contract that will delegatecall every transaction it is sent to the `target` address.
  */
+// BK Ok
 contract CloneFactory {
 
+  // BK Ok - Event
   event CloneCreated(address indexed target, address clone);
 
+  // BK Ok - Internal function
   function createClone(address target) internal returns (address result) {
+    // BK Ok - Matches bytecode-annotation.txt bytecode (see below)
     bytes memory clone = hex"3460425760388060106000396000f30036600060ff376000803660ff73beefbeefbeefbeefbeefbeefbeefbeefbeefbeef5af4156032573d80600060ff3e60fff3005b600080fd00";
+    // BK Ok - Template code address
     bytes20 targetBytes = bytes20(target);
+    // BK Next block Ok - Overwrite `beefbeefbeefbeefbeefbeefbeefbeefbeefbeef` with template code address
     for (uint i = 0; i < 20; i++) {
       clone[29 + i] = targetBytes[i];
     }
     assembly {
+      // BK NOTE - mload(p) - mem[p..(p+32)). Load word from memory.
+      // BK Ok - Len will be 0x48 (72), the number of bytes in clone
       let len := mload(clone)
+      // BK NOTE - `data` will point to the start of the `clone` data
+      // BK NOTE - In this function, data will be 0xa0 (160)
       let data := add(clone, 0x20)
+      // BK Ok - create(v, p, s) - create new contract with code mem[p..(p+s)) and send v wei and return the new address
       result := create(0, data, len)
     }
   }
@@ -64,37 +78,58 @@ contract CloneFactory {
 
 ```
 
+<br />
+
+<hr />
+
+## `clone` Bytecode
+
 From [../../bytecode-annotation.txt](../../bytecode-annotation.txt):
 
 ```assembly
 Init code
 ---------
 
+// BK NOTE - 0x34 callvalue - wei sent together with the current call
 0  | 34 <- CALLVALUE                Push the callvalue onto the stack [ callvalue ]
+// BK NOTE - Comment below should be 0x42. 0x60 PUSH1 - Place 1 byte item on stack
 1  | 60 <- PUSH1                    Push 0x44 the offset of the JUMPDEST given the revert label
+// BK NOTE - 0x42 = 66
 2  | 42 <- 0x42 `revert`            -> [ callvalue, 0x42 ]
+// BK NOTE - 0x57 JUMPI - Conditionally alter the program counter
 3  | 57 <- JUMPI                    Jumpi(0x42, callvalue) Jumps to `revert` if callvalue > 0 [ ]
 4  | 60 <- PUSH1                    Push 0x38 the bytes length of the contract code
+// BK NOTE - 0x38 = 56. Code length = 71 - 16 + 1 = 56
 5  | 38 <- 0x38 `codeend-code`      -> [ 38 ]
+// BK NOTE - 0x80 DUP1 Duplicate 1st stack item
 6  | 80 <- DUP1                     Duplicate last stack item [ 38, 38 ]
 7  | 60 <- PUSH1                    Push 0x10 the bytes which represent the offset of code start (see the 16th opcode)
+// BK NOTE - 0x10 = 16
 8  | 10 <- 0x10 `code`              -> [ 38, 38, 10 ]
 9  | 60 <- PUSH1                    Push 0x00 onto the stack
 10 | 00 <- 0x00                     -> [ 38, 38, 10, 00 ]
+// BK NOTE - 0x39 CODECOPY Copy code running in current environment to memory
+// BK NOTE - codecopy(t, f, s) - copy s bytes from code at position f to mem at position t
 11 | 39 <- CODECOPY                 Codecopy(0x00, 0x10, 0x38) Copy 0x38 bytes of code from position 0x10 (16) to memory 0x0 -> [ 38 ]
 12 | 60 <- PUSH1                    Push 0x00 onto the stack
 13 | 00 <- 0xOO                     -> [ 38, 00 ]
+// BK NOTE - 0xf3 RETURN Halt execution returning output data
+// BK NOTE - return(p, s) - end execution, return data mem[p..(p+s))
 14 | f3 <- RETURN                   Return(0x00, 0x38) [ ] Return the new code in the contract (which does not include the constructor).
+// BK NOTE - 0x00 STOP - stop - stop execution, identical to return(0,0)
 15 | 00 <- STOP                     Stop Call
 
 Contract code
 -------------
 
+// BK NOTE - 0x36 CALLDATASIZE - Get size of input data in current environment. This pertains to the input data passed with the message call instruction or transaction
 16 | 36 <- CALLDATASIZE             Push the calldatasize in bytes to the stack [ calldatasize ]
 17 | 60 <- PUSH1                    Push 0x00 to the stack
 18 | 00 <- 0x00                     -> [ calldatasize, 00 ]
 19 | 60 <- PUSH1                    Push 0xFF to the stack
 20 | ff <- 0xFF                     -> [ calldatasize, 00, FF ]
+// BK NOTE - 0x37 CALLDATACOPY - Copy input data in current environment to memory. This pertains to the input data passed with the message call instruction or transaction
+// BK NOTE - calldatacopy(t, f, s) - copy s bytes from calldata at position f to mem at position t
 21 | 37 <- CALLDATACOPY             Calldatacopy(0xFF, 0x00, calldatasize) Copy `calldatasize` bytes at position 0x00 to memory at position 0xFF -> [ ]
 22 | 60 <- PUSH1                    Push 0x00 to the stack
 23 | 00 <- 0x00                     -> [ 00 ]
@@ -123,42 +158,111 @@ Contract code
 46 | ef
 47 | be
 48 | ef <- end 20 bytes             -> [ 00, 00, calldatasize, FF, BE, EF, ..., EF ]
+// BK NOTE - 0x5a GAS - Get the amount of available gas, including the corresponding reduction for the cost of this instruction
 49 | 5a <- GAS                      Push available gas to the stack -> [ 00, 00, calldatasize, FF, BE, EF, ..., EF, gas ]
+// BK NOTE - 0xf4 DELEGATECALL
+// BK NOTE - delegatecall(g, a, in, insize, out, outsize) - identical to callcode but also keep caller and callvalue
+// BK NOTE - callcode(g, a, v, in, insize, out, outsize) - identical to call but only use the code from a and stay in the context of the current contract otherwise
+// BK NOTE - call(g, a, v, in, insize, out, outsize) - call contract at address a with input mem[in..(in+insize)) providing g gas and v wei and output area mem[out..(out+outsize)) returning 0 on error (eg. out of gas) and 1 on success
 50 | f4 <- DELEGATECALL             DelegateCall(gas, 0xBEEF...EF, 0xFF, calldatasize, 0x00, 0x00) Call contract at 0xBEEF...EF with input at memory location 0xFF for `calldatasize` bytes using `gas` gas. Returns 0 on error and 1 on success -> [ 0||1 ]
+// BK NOTE - 0x15 ISZERO Simple not operator
 51 | 15 <- ISZERO                   Checks if last item on stack is 0 and returns 1 if true -> [ 0||1, iszero ]
 52 | 60 <- PUSH1                    Push the offset of revert destination based on start of the code
+// BK NOTE - 0x32 = 50. 50 + 16 = 66
 53 | 32 <- `revert-code`            -> [ 0||1, iszero, 32 ]
 54 | 57 <- JUMPI                    JUMPI(0x32, iszero(0||1)) Jump to the revert destination if the return value is === 0 (delegatecall failed) -> [ ]
+// BK NOTE - returndatasize - size of the last returndata
 55 | 3d <- RETURNDATASIZE           Push `returndatasize` onto the stack -> [ returndatasize ]
 56 | 80 <- DUP1                     Duplicate -> [ returndatasize, returndatasize ]
 57 | 60 <- PUSH1                    Push 0x00 onto the stack
 58 | 00 <- 0x00                     -> [ returndatasize, returndatasize, 00 ]
 59 | 60 <- PUSH1                    Push 0xFF onto the stack
 60 | ff <- 0xFF                     -> [ returndatasize, returndatasize, 00, FF ]
+// BK NOTE - returndatacopy(t, f, s) - copy s bytes from returndata at position f to mem at position t
 61 | 3e <- RETURNDATACOPY           Returndatacopy(0xFF, 0x00, returndatasize) Copies `returndatasize` bytes from 0x00 to memory at 0xFF -> [ returndatasize ]
 62 | 60 <- PUSH1                    Push 0xFF onto the stack
 63 | ff <- 0xFF                     -> [ returndatasize, FF ]
+// BK NOTE - return(p, s) - end execution, return data mem[p..(p+s))
 64 | f3 <- RETURN                   Return(0xFF, returndatasize) Returns the memory at location 0xFF of length `returndatasize` -> [ ]
+// BK NOTE - 0x00 STOP - stop - stop execution, identical to return(0,0)
 65 | 00 <- STOP                     Stop Call
 66 | 5b <- JUMPDEST `revert`
 67 | 60 <- PUSH1                    Push 0x00 onto the stack
 68 | 00 <- 0x00                     -> [ 00 ]
 69 | 80 <- DUP1                     Duplicate -> [ 00, 00 ]
+// BK NOTE - REVERT = 0xfd. revert(p, s) - end execution, revert state changes, return data mem[p..(p+s))
 70 | fd <- REVERT                   Revert(0x00, 0x00) -> [ ]
+// BK NOTE - 0x00 STOP - stop - stop execution, identical to return(0,0)
 71 | 00 <- STOP                     Stop Call
 ```
 
 <br />
 
-## Could Not Find Orignal Source
+<hr />
 
-Code from https://github.com/yarrumretep/clone-factory which redirects to https://github.com/optionality/clone-factory
+## `clone` Bytecode Generator
 
-Checking code from https://github.com/optionality/clone-factory/blob/fe2ffc82f744b210dee89da9215dd6ebe2cb5b44/contracts/CloneFactory.sol :
+From [https://github.com/optionality/clone-factory/blob/d7a76aacbf73fdd348e78ba0b750d83294bd722e/clone-contract.js](https://github.com/optionality/clone-factory/blob/d7a76aacbf73fdd348e78ba0b750d83294bd722e/clone-contract.js):
 
-> 600034603b57603080600f833981f36000368180378080368173bebebebebebebebebebebebebebebebebebebebe5af43d82803e15602c573d90f35b3d90fd
+```javascript
+const evm = require('@optionality.io/evm-asm');
 
-And comparing to the code from CloneFactory.sol above:
+module.exports = evm.program([
 
-> 3460425760388060106000396000f30036600060ff376000803660ff73beefbeefbeefbeefbeefbeefbeefbeefbeefbeef5af4156032573d80600060ff3e60fff3005b600080fd00
+  // initialization code
+  evm.callvalue(),
+  evm.push1('revert'),
+  evm.jumpi(),
+  evm.push1('codeend-code'),
+  evm.dup1(),
+  evm.push1('code'),
+  evm.push1(0),
+  evm.codecopy(),
+  evm.push1(0),
+  evm.return(),
+  evm.stop(),
+  evm.label('code'),
 
+  // contract code
+  evm.calldatasize(),
+  evm.push1(0),
+  evm.push1(0xff),
+  evm.calldatacopy(),
+  evm.push1(0),
+  evm.dup1(),
+  evm.calldatasize(),
+  evm.push1(0xff),
+  evm.push20('0xbeefbeefbeefbeefbeefbeefbeefbeefbeefbeef'),
+  evm.gas(),
+  evm.delegatecall(),
+  evm.iszero(),
+  evm.push1('revert-code'),
+  evm.jumpi(),
+  evm.returndatasize(),
+  evm.dup1(),
+  evm.push1(0x0),
+  evm.push1(0xff),
+  evm.returndatacopy(),
+  evm.push1(0xff),
+  evm.return(),
+  evm.stop(),
+  evm.jumpdest('revert'),
+  evm.push1(0x0),
+  evm.dup1(),
+  evm.revert(),
+  evm.stop(),
+
+  // end label
+  evm.label('codeend')
+]);
+```
+
+<br />
+
+<hr />
+
+## References
+
+* [Ethereum Yellow Paper](http://gavwood.com/paper.pdf)
+* [Solidity Assembly](http://solidity.readthedocs.io/en/v0.4.21/assembly.html)
+* [EVM Opcodes](https://github.com/trailofbits/evm-opcodes)

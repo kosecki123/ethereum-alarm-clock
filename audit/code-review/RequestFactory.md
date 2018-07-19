@@ -137,23 +137,34 @@ contract RequestFactory is RequestFactoryInterface, CloneFactory {
 
         // BK Ok
         if (!isValid.all()) {
-            // BK TODO - Below
+            // BK Ok
             if (!isValid[0]) {
+                // BK Ok
                 emit ValidationError(uint8(Errors.InsufficientEndowment));
             }
+            // BK Ok
             if (!isValid[1]) {
+                // BK Ok
                 emit ValidationError(uint8(Errors.ReservedWindowBiggerThanExecutionWindow));
             }
+            // BK Ok
             if (!isValid[2]) {
+                // BK Ok
                 emit ValidationError(uint8(Errors.InvalidTemporalUnit));
             }
+            // BK Ok
             if (!isValid[3]) {
+                // BK Ok
                 emit ValidationError(uint8(Errors.ExecutionWindowTooSoon));
             }
+            // BK Ok
             if (!isValid[4]) {
+                // BK Ok
                 emit ValidationError(uint8(Errors.CallGasTooHigh));
             }
+            // BK Ok
             if (!isValid[5]) {
+                // BK Ok
                 emit ValidationError(uint8(Errors.EmptyToAddress));
             }
 

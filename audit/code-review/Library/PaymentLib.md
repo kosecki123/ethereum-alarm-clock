@@ -147,7 +147,7 @@ library PaymentLib {
      * See request_factory.rst in docs folder under Check #1 for more information about
      * this calculation.
      */
-    // BK Ok - Pure function
+    // BK Ok - Pure function, called from BaseScheduler.computeEndowment(...) and validateEndowment(...) below
     function computeEndowment(
         uint _bounty,
         uint _fee,
@@ -174,7 +174,7 @@ library PaymentLib {
      * - gasReimbursment
      * - callValue
      */
-    // BK Ok - Pure function
+    // BK Ok - Pure function, called from RequestLib.validate(...)
     function validateEndowment(uint _endowment, uint _bounty, uint _fee, uint _callGas, uint _callValue, uint _gasPrice, uint _gasOverhead)
         public pure returns (bool)
     {
