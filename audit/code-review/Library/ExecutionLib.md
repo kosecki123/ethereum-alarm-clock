@@ -46,7 +46,7 @@ library ExecutionLib {
     function CALL_GAS_CEILING(uint EXTRA_GAS) 
         internal view returns (uint)
     {
-        // BK NOTE - validation on one block gasLimit, but execution will be one a different block, most likely with a different block gasLimit
+        // BK NOTE - validation on current block gasLimit, but execution will be one a different block, most likely with a different block gasLimit
         // BK Ok
         return block.gaslimit - EXTRA_GAS;
     }

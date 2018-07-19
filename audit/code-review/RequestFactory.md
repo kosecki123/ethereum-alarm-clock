@@ -7,8 +7,10 @@ Source file [../../contracts/RequestFactory.sol](../../contracts/RequestFactory.
 <hr />
 
 ```javascript
+// BK Ok
 pragma solidity ^0.4.21;
 
+// BK Next 6 Ok
 import "contracts/Interface/RequestFactoryInterface.sol";
 import "contracts/TransactionRequestCore.sol";
 import "contracts/Library/RequestLib.sol";
@@ -20,21 +22,28 @@ import "contracts/Library/RequestScheduleLib.sol";
  * @title RequestFactory
  * @dev Contract which will produce new TransactionRequests.
  */
+// BK Ok
 contract RequestFactory is RequestFactoryInterface, CloneFactory {
+    // BK Ok
     using IterTools for bool[6];
 
+    // BK Ok
     TransactionRequestCore public transactionRequestCore;
 
+    // BK Next 2 Ok
     uint constant public BLOCKS_BUCKET_SIZE = 240; //~1h
     uint constant public TIMESTAMP_BUCKET_SIZE = 3600; //1h
 
+    // BK Ok - Constructor
     function RequestFactory(
         address _transactionRequestCore
     ) 
         public 
     {
+        // BK Ok
         require(_transactionRequestCore != 0x0);
 
+        // BK Ok
         transactionRequestCore = TransactionRequestCore(_transactionRequestCore);
     }
 
@@ -58,6 +67,7 @@ contract RequestFactory is RequestFactoryInterface, CloneFactory {
      * @param _uintArgs [11]   -  claimData.requiredDeposit
      * @param _callData        -  The call data
      */
+    // BK Ok - Only called by createValidatedRequest(...) below
     function createRequest(
         address[3]  _addressArgs,
         uint[12]    _uintArgs,
@@ -66,9 +76,11 @@ contract RequestFactory is RequestFactoryInterface, CloneFactory {
         public payable returns (address)
     {
         // Create a new transaction request clone from transactionRequestCore.
+        // BK Ok
         address transactionRequest = createClone(transactionRequestCore);
 
         // Call initialize on the transaction request clone.
+        // BK Ok - Parameters match TransactionRequestCore.initialize(...)
         TransactionRequestCore(transactionRequest).initialize.value(msg.value)(
             [
                 msg.sender,       // Created by
@@ -81,6 +93,7 @@ contract RequestFactory is RequestFactoryInterface, CloneFactory {
         );
 
         // Track the address locally
+        // BK Ok
         requests[transactionRequest] = true;
 
         // Log the creation.
@@ -97,6 +110,7 @@ contract RequestFactory is RequestFactoryInterface, CloneFactory {
             _uintArgs
         );
 
+        // BK Ok
         return transactionRequest;
     }
 
@@ -106,6 +120,7 @@ contract RequestFactory is RequestFactoryInterface, CloneFactory {
      *
      *  Parameters are the same as `createRequest`
      */
+    // BK Ok - Only called by BaseScheduler.schedule(...)
     function createValidatedRequest(
         address[3]  _addressArgs,
         uint[12]    _uintArgs,
@@ -113,13 +128,16 @@ contract RequestFactory is RequestFactoryInterface, CloneFactory {
     )
         public payable returns (address)
     {
+        // BK Ok
         bool[6] memory isValid = validateRequestParams(
             _addressArgs,
             _uintArgs,
             msg.value
         );
 
+        // BK Ok
         if (!isValid.all()) {
+            // BK TODO - Below
             if (!isValid[0]) {
                 emit ValidationError(uint8(Errors.InsufficientEndowment));
             }
@@ -140,11 +158,15 @@ contract RequestFactory is RequestFactoryInterface, CloneFactory {
             }
 
             // Try to return the ether sent with the message
+            // BK NOTE - Return of 0x0 to BaseScheduler.schedule(...) will throw an error there, so the following transfer will be rolled back anyway
+            // BK Ok - Limited to 2,300 gas, false return status throws an error
             msg.sender.transfer(msg.value);
             
+            // BK Ok
             return 0x0;
         }
 
+        // BK Ok
         return createRequest(_addressArgs, _uintArgs, _callData);
     }
 
@@ -155,6 +177,7 @@ contract RequestFactory is RequestFactoryInterface, CloneFactory {
     /*
      *  @dev The enum for launching `ValidationError` events and mapping them to an error.
      */
+    // BK Next block Ok
     enum Errors {
         InsufficientEndowment,
         ReservedWindowBiggerThanExecutionWindow,
@@ -164,11 +187,13 @@ contract RequestFactory is RequestFactoryInterface, CloneFactory {
         EmptyToAddress
     }
 
+    // BK Ok - Event
     event ValidationError(uint8 error);
 
     /*
      * @dev Validate the constructor arguments for either `createRequest` or `createValidatedRequest`.
      */
+    // BK Ok - View function, called by createValidatedRequest(...) above
     function validateRequestParams(
         address[3]  _addressArgs,
         uint[12]    _uintArgs,
@@ -176,6 +201,7 @@ contract RequestFactory is RequestFactoryInterface, CloneFactory {
     )
         public view returns (bool[6])
     {
+        // BK TODO - Check
         return RequestLib.validate(
             [
                 msg.sender,      // meta.createdBy

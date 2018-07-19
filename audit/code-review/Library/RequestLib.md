@@ -52,6 +52,7 @@ library RequestLib {
     /**
      * @dev Validate the initialization parameters of a transaction request.
      */
+    // BK Ok - Called by RequestFactory.validateRequestParams(...)
     function validate(
         address[4]  _addressArgs,
         uint[12]    _uintArgs,
@@ -61,6 +62,15 @@ library RequestLib {
     {
         // The order of these errors matters as it determines which
         // ValidationError event codes are logged when validation fails.
+        // BK NOTE - _uintArgs [1]    -  paymentData.bounty
+        // BK NOTE - _uintArgs [0]    -  paymentData.fee
+        // BK NOTE - _uintArgs [8]    -  txnData.callGas
+        // BK NOTE - _uintArgs [9]    -  txnData.callValue
+        // BK NOTE - _uintArgs [10]   -  txnData.gasPrice
+        // BK NOTE - Validate _endowment >= (_bounty + _fee + (_callGas x _gasPrice) + (_gasOverhead x _gasPrice) + _callValue)
+        // BK NOTE - Validate _endowment >= (paymentData.bounty + paymentData.fee + (txnData.callGas x txnData.gasPrice)
+        // BK NOTE -                        + (EXECUTION_GAS_OVERHEAD x txnData.gasPrice) + txnData.callValue)
+        // BK Ok
         isValid[0] = PaymentLib.validateEndowment(
             _endowment,
             _uintArgs[1],               //bounty
@@ -70,22 +80,37 @@ library RequestLib {
             _uintArgs[10],              //gasPrice
             EXECUTION_GAS_OVERHEAD
         );
+        // BK NOTE - _uintArgs [4]    -  schedule.reservedWindowSize
+        // BK NOTE - _uintArgs [6]    -  schedule.windowSize
+        // BK Ok - Validate schedule.reservedWindowSize <= schedule.windowSize
         isValid[1] = RequestScheduleLib.validateReservedWindowSize(
             _uintArgs[4],               //reservedWindowSize
             _uintArgs[6]                //windowSize
         );
+        // BK NOTE - TemporalUnit 0=Null, 1=Blocks, 2=Timestamp
+        // BK NOTE - _uintArgs [5]    -  schedule.temporalUnit
+        // BK Ok - Validate that schedule.temporalUnit == 1 or 2
         isValid[2] = RequestScheduleLib.validateTemporalUnit(_uintArgs[5]);
+        // BK NOTE - TemporalUnit 0=Null, 1=Blocks, 2=Timestamp
+        // BK NOTE - _uintArgs [5]    -  schedule.temporalUnit
+        // BK NOTE - _uintArgs [3]    -  schedule.freezePeriod
+        // BK NOTE - _uintArgs [7]    -  schedule.windowStart
+        // BK Ok - Validate that now + schedule.freezePeriod <= schedule.windowStart
         isValid[3] = RequestScheduleLib.validateWindowStart(
             RequestScheduleLib.TemporalUnit(MathLib.min(_uintArgs[5], 2)),
             _uintArgs[3],               //freezePeriod
             _uintArgs[7]                //windowStart
         );
+        // BK NOTE - _uintArgs [8]    -  txnData.callGas
+        // BK Ok - Validate that txnData.callGas is < blockGasLimit - EXECUTION_GAS_OVERHEAD
         isValid[4] = ExecutionLib.validateCallGas(
             _uintArgs[8],               //callGas
             EXECUTION_GAS_OVERHEAD
         );
+        // BK Ok - Validate that txnData.toAddress != 0x0
         isValid[5] = ExecutionLib.validateToAddress(_addressArgs[3]);
 
+        // BK Ok
         return isValid;
     }
 
@@ -507,7 +532,7 @@ library RequestLib {
             // Transfers the rewardPayment.
             if (rewardOwed > 0) {
                 self.paymentData.bountyOwed = 0;
-                // BK Ok - Limited to 2,300 gas, false return status throws and error
+                // BK Ok - Limited to 2,300 gas, false return status throws an error
                 rewardBenefactor.transfer(rewardOwed);
             }
         }
