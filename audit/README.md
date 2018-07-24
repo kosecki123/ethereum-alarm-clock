@@ -8,7 +8,7 @@ The Ethereum Alarm Clock (EAC) was originally created by Piper Merriam in 2015. 
 
 Bok Consulting Pty Ltd was commissioned to perform an audit on the Ethereum smart contracts built for the Ethereum Alarm Clock.
 
-This audit has been conducted on the EAC source code in commit [252a7a9](https://github.com/ethereum-alarm-clock/ethereum-alarm-clock/commit/252a7a92bee984ff25bdb75189b3a4cc9748fadb).
+This audit has been conducted on the EAC source code in commits [252a7a9](https://github.com/ethereum-alarm-clock/ethereum-alarm-clock/commit/252a7a92bee984ff25bdb75189b3a4cc9748fadb) and [c3f26bc](https://github.com/ethereum-alarm-clock/ethereum-alarm-clock/commit/c3f26bc20eb902bf8da581df2cfaa21c122ea7a3).
 
 The user interface for testing the EAC smart contracts on the Kovan testnet is at [http://chronologic-dev.s3-website-us-east-1.amazonaws.com/](http://chronologic-dev.s3-website-us-east-1.amazonaws.com/).
 
