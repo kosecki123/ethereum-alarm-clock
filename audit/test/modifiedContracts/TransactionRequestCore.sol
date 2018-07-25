@@ -16,6 +16,7 @@ contract TransactionRequestCore is TransactionRequestInterface {
     event Cancelled(uint rewardPayment, uint measuredGasConsumption);
     event Claimed();
     event Executed(uint bounty, uint fee, uint measuredGasConsumption);
+    event LogUint(string source, string text, uint value);
 
     /*
      *  addressArgs[0] - meta.createdBy

@@ -442,6 +442,14 @@ function displayTxRequestDetails(msg, address, abi) {
   });
   executedEvents.stopWatching();
 
+  var logUintEvents = contract.LogUint({}, { fromBlock: txRequestFromBlock[address], toBlock: latestBlock });
+  i = 0;
+  logUintEvents.watch(function (error, result) {
+    console.log("RESULT: txRequest.LogUint " + i++ + " #" + result.blockNumber + " source=" + result.args.source +
+      " text=" + result.args.text + " value=" + result.args.value + " " + result.args.value.shift(-18));
+  });
+  logUintEvents.stopWatching();
+
   txRequestFromBlock[address] = latestBlock + 1;
 }
 
@@ -496,6 +504,13 @@ function printRequestFactoryContractDetails() {
 
     var latestBlock = eth.blockNumber;
     var i;
+
+    var validationErrorEvents = contract.ValidationError({}, { fromBlock: requestFactoryFromBlock, toBlock: latestBlock });
+    i = 0;
+    validationErrorEvents.watch(function (error, result) {
+      console.log("RESULT: ValidationError " + i++ + " #" + result.blockNumber + " " + JSON.stringify(result.args));
+    });
+    validationErrorEvents.stopWatching();
 
     var requestCreatedEvents = contract.RequestCreated({}, { fromBlock: requestFactoryFromBlock, toBlock: latestBlock });
     i = 0;

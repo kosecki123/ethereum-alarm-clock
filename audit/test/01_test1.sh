@@ -191,7 +191,7 @@ var mathLib = mathLibContract.new({from: contractOwnerAccount, data: mathLibBin,
       } else {
         mathLibAddress = contract.address;
         addAccount(mathLibAddress, "MathLib");
-        console.log("DATA: mathLibAddress=" + mathLibAddress);
+        console.log("DATA: mathLibAddress=\"" + mathLibAddress + "\";");
       }
     }
   }
@@ -208,7 +208,7 @@ var paymentLib = paymentLibContract.new({from: contractOwnerAccount, data: payme
       } else {
         paymentLibAddress = contract.address;
         addAccount(paymentLibAddress, "PaymentLib");
-        console.log("DATA: paymentLibAddress=" + paymentLibAddress);
+        console.log("DATA: paymentLibAddress=\"" + paymentLibAddress + "\";");
       }
     }
   }
@@ -225,7 +225,7 @@ var requestScheduleLib = requestScheduleLibContract.new({from: contractOwnerAcco
       } else {
         requestScheduleLibAddress = contract.address;
         addAccount(requestScheduleLibAddress, "RequestScheduleLib");
-        console.log("DATA: requestScheduleLibAddress=" + requestScheduleLibAddress);
+        console.log("DATA: requestScheduleLibAddress=\"" + requestScheduleLibAddress + "\";");
       }
     }
   }
@@ -242,7 +242,7 @@ var iterTools = iterToolsContract.new({from: contractOwnerAccount, data: iterToo
       } else {
         iterToolsAddress = contract.address;
         addAccount(iterToolsAddress, "IterTools");
-        console.log("DATA: iterToolsAddress=" + iterToolsAddress);
+        console.log("DATA: iterToolsAddress=\"" + iterToolsAddress + "\";");
       }
     }
   }
@@ -281,7 +281,7 @@ var requestLib = requestLibContract.new({from: contractOwnerAccount, data: newRe
       } else {
         requestLibAddress = contract.address;
         addAccount(requestLibAddress, "RequestLib");
-        console.log("DATA: requestLibAddress=" + requestLibAddress);
+        console.log("DATA: requestLibAddress=\"" + requestLibAddress + "\";");
       }
     }
   }
@@ -313,7 +313,7 @@ var transactionRequestCore = transactionRequestCoreContract.new({from: contractO
       } else {
         transactionRequestCoreAddress = contract.address;
         addAccount(transactionRequestCoreAddress, "TransactionRequestCore");
-        console.log("DATA: transactionRequestCoreAddress=" + transactionRequestCoreAddress);
+        console.log("DATA: transactionRequestCoreAddress=\"" + transactionRequestCoreAddress + "\";");
       }
     }
   }
@@ -346,7 +346,7 @@ var requestFactory = requestFactoryContract.new(transactionRequestCoreAddress, {
         requestFactoryAddress = contract.address;
         addAccount(requestFactoryAddress, "RequestFactory");
         addRequestFactoryContractAddressAndAbi(requestFactoryAddress, requestFactoryAbi);
-        console.log("DATA: requestFactoryAddress=" + requestFactoryAddress);
+        console.log("DATA: requestFactoryAddress=\"" + requestFactoryAddress + "\";");
       }
     }
   }
@@ -378,7 +378,7 @@ var blockScheduler = blockSchedulerContract.new(requestFactoryAddress, feeRecipi
       } else {
         blockSchedulerAddress = contract.address;
         addAccount(blockSchedulerAddress, "BlockScheduler");
-        console.log("DATA: blockSchedulerAddress=" + blockSchedulerAddress);
+        console.log("DATA: blockSchedulerAddress=\"" + blockSchedulerAddress+ "\";");
       }
     }
   }
@@ -398,7 +398,7 @@ var timestampScheduler = timestampSchedulerContract.new(requestFactoryAddress, f
       } else {
         timestampSchedulerAddress = contract.address;
         addAccount(timestampSchedulerAddress, "TimestampScheduler");
-        console.log("DATA: timestampSchedulerAddress=" + timestampSchedulerAddress);
+        console.log("DATA: timestampSchedulerAddress=\"" + timestampSchedulerAddress+ "\";");
       }
     }
   }
@@ -431,7 +431,9 @@ var delayedPayment = delayedPaymentContract.new(blockSchedulerAddress, numBlocks
       } else {
         delayedPaymentAddress = contract.address;
         addAccount(delayedPaymentAddress, "DelayedPayment");
-        console.log("DATA: delayedPaymentAddress=" + delayedPaymentAddress);
+        console.log("DATA: delayedPaymentAddress=\"" + delayedPaymentAddress+ "\";");
+        console.log("DATA: var delayedPaymentAbi=" + JSON.stringify(delayedPaymentAbi) + ";");
+        console.log("DATA: var delayedPayment=eth.contract(delayedPaymentAbi).at(delayedPaymentAddress);");
       }
     }
   }
@@ -439,9 +441,11 @@ var delayedPayment = delayedPaymentContract.new(blockSchedulerAddress, numBlocks
 while (txpool.status.pending > 0) {
 }
 console.log("RESULT: delayedPayment.scheduledTransaction=" + delayedPayment.scheduledTransaction());
-var newRequestAddress = getRequestFactoryListing();
-console.log("RESULT: newRequestAddress=" + newRequestAddress);
-addAccount(newRequestAddress, "DelayedPaymentRequest");
+var delayedPaymentRequestAddress = getRequestFactoryListing();
+console.log("DATA: delayedPaymentRequestAddress=\"" + delayedPaymentRequestAddress + "\";");
+addAccount(delayedPaymentRequestAddress, "DelayedPaymentRequest");
+console.log("DATA: var transactionRequestCoreAbi=" + JSON.stringify(transactionRequestCoreAbi) + ";");
+console.log("DATA: var delayedPaymentRequest=eth.contract(transactionRequestCoreAbi).at(delayedPaymentRequestAddress);");
 printBalances();
 failIfTxStatusError(delayedPaymentTx, delayedPaymentMessage);
 printTxData("delayedPaymentTx", delayedPaymentTx);
@@ -473,9 +477,6 @@ var execute1Message = "Execute Delayed Payment";
 var gasPrice = web3.toWei(20, "gwei");
 // -----------------------------------------------------------------------------
 console.log("RESULT: ---------- " + execute1Message + " ----------");
-var delayedPaymentTxRequest = eth.contract(transactionRequestCoreAbi).at(delayedPayment.scheduledTransaction());
-// NO var execute1_1Tx = eth.sendTransaction({from: executor, to: delayedPayment.scheduledTransaction(), gas: 400000, gasPrice: defaultGasPrice});
-// PART var execute1_1Tx = eth.sendTransaction({from: executor, to: delayedPaymentAddress, gas: 400000, gasPrice: defaultGasPrice});
 var execute1_1Tx = delayedPaymentTxRequest.execute({from: executor, gas: 400000, gasPrice: gasPrice});
 while (txpool.status.pending > 0) {
 }
@@ -483,6 +484,20 @@ printBalances();
 failIfTxStatusError(execute1_1Tx, execute1Message);
 printTxData("execute1_1Tx", execute1_1Tx);
 displayTxRequestDetails(execute1Message, delayedPayment.scheduledTransaction(), transactionRequestCoreAbi);
+console.log("RESULT: ");
+
+
+// -----------------------------------------------------------------------------
+var sendOwnerEther1Message = "Send Owner Ethers";
+// -----------------------------------------------------------------------------
+console.log("RESULT: ---------- " + sendOwnerEther1Message + " ----------");
+var sendOwnerEther1_1Tx = delayedPaymentTxRequest.sendOwnerEther(scheduleCreator, {from: scheduleCreator, gas: 400000, gasPrice: defaultGasPrice});
+while (txpool.status.pending > 0) {
+}
+printBalances();
+failIfTxStatusError(sendOwnerEther1_1Tx, sendOwnerEther1Message);
+printTxData("sendOwnerEther1_1Tx", sendOwnerEther1_1Tx);
+displayTxRequestDetails(sendOwnerEther1Message, delayedPayment.scheduledTransaction(), transactionRequestCoreAbi);
 console.log("RESULT: ");
 
 
