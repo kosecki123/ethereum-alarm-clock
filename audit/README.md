@@ -47,6 +47,7 @@ No potential vulnerabilities have been identified in the EAC smart contracts.
 * [ ] **LOW IMPORTANCE** *SafeMath* is not used in *ClaimLib*
 * [ ] **LOW IMPORTANCE** Note that if there is a input parameter validation error, the `ValidationError(...)` events from *RequestFactory* will never get generated because `BaseScheduler.schedule(...)` will throw an error if the validation fails, and the event logs will not be persisted on the blockchain
 * [ ] **LOW IMPORTANCE** The index number for *uintArgs[7]* should be swapped with *uintArgs[6]* in the comment above `TransactionRequestCore.initialize(...)`
+* [ ] **MEDIUM IMPORTANCE** Please review the issue below on a residual amount remaining in the *DelayedPayment* contract
 
 <br />
 
@@ -260,8 +261,8 @@ Check exit points for ethers:
 
 ### contract
 
-* [ ] [code-review/CloneFactory.md](code-review/CloneFactory.md)
-  * [ ] contract CloneFactory
+* [x] [code-review/CloneFactory.md](code-review/CloneFactory.md)
+  * [x] contract CloneFactory
 * [x] [code-review/IterTools.md](code-review/IterTools.md)
   * [x] library IterTools
 * [x] [code-review/RequestFactory.md](code-review/RequestFactory.md)
@@ -280,17 +281,6 @@ Check exit points for ethers:
   * [x] contract DelayedPayment
 * [ ] [code-review/_examples/RecurringPayment.md](code-review/_examples/RecurringPayment.md)
   * [ ] contract RecurringPayment
-
-<br />
-
-### contract/_test
-
-* [ ] [code-review/_test/Proxy.md](code-review/_test/Proxy.md)
-  * [ ] contract Proxy
-* [ ] [code-review/_test/SimpleToken.md](code-review/_test/SimpleToken.md)
-  * [ ] contract SimpleToken
-* [ ] [code-review/_test/TransactionRecorder.md](code-review/_test/TransactionRecorder.md)
-  * [ ] contract TransactionRecorder
 
 <br />
 
@@ -354,6 +344,9 @@ Check exit points for ethers:
 ### Excluded - Only Used For Testing
 
 * [../contracts/Migrations.sol](../contracts/Migrations.sol)
+* [../contracts/_test/Proxy.sol](../contracts/_test/Proxy.sol)
+* [../contracts/_test/SimpleToken.sol](../contracts/_test/SimpleToken.sol)
+* [../contracts/_test/TransactionRecorder.sol](../contracts/_test/TransactionRecorder.sol)
 
 <br />
 
