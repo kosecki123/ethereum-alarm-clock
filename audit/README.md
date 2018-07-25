@@ -24,6 +24,7 @@ No potential vulnerabilities have been identified in the EAC smart contracts.
 
 * [Summary](#summary)
 * [Recommendations](#recommendations)
+* [Issues](#issues)
 * [Potential Vulnerabilities](#potential-vulnerabilities)
 * [Scope](#scope)
 * [Risks](#risks)
@@ -46,6 +47,114 @@ No potential vulnerabilities have been identified in the EAC smart contracts.
 * [ ] **LOW IMPORTANCE** *SafeMath* is not used in *ClaimLib*
 * [ ] **LOW IMPORTANCE** Note that if there is a input parameter validation error, the `ValidationError(...)` events from *RequestFactory* will never get generated because `BaseScheduler.schedule(...)` will throw an error if the validation fails, and the event logs will not be persisted on the blockchain
 * [ ] **LOW IMPORTANCE** The index number for *uintArgs[7]* should be swapped with *uintArgs[6]* in the comment above `TransactionRequestCore.initialize(...)`
+
+<br />
+
+<hr />
+
+## Issues
+
+### Residual Amount Remaining In The DelayedPayment Contract
+
+In my testing [script](test/01_test1.sh) (and the corresponding [results](test/test1results.txt), I have deployed the EAC contracts and used the *DelayedPayment.sol* example with the following parameters:
+
+* The *Schedule Creator* account deploys *DelayedPayment.sol* with `numBlocks` = 20, sending 10 ETH with the payment scheduled to be sent to *Payment Recipient*
+* The *Executor* account claims the request, sending 0.1 ETH with the transaction
+* The *Executor* account waits the 20 blocks and executes the request
+
+This results in the following table:
+
+```
+ # Account                                             EtherBalanceChange                 (Token A) WETH                  (Token B) DAI Name
+-- ------------------------------------------ --------------------------- ------------------------------ ------------------------------ ---------------------------
+ 0 0xa00af22d07c87d96eeeb0ed583f8f6ac7812827e        0.017037202000000000           0.000000000000000000           0.000000000000000000 Account #0 - Miner
+ 1 0xa11aae29840fbb5c86e6fd4cf809eba183aef433       -0.011958348000000000           0.000000000000000000           0.000000000000000000 Account #1 - Contract Owner
+ 2 0xa22ab8a9d641ce77e06d98b7d7065d324d3d6976        0.000000020000000000           0.000000000000000000           0.000000000000000000 Account #2 - Fee Recipient
+ 3 0xa33a6c312d9ad0e0f2e95541beed0cc081621fd0      -10.001596498000000000           0.000000000000000000           0.000000000000000000 Account #3 - Schedule Creator
+ 4 0xa44a08d3f6933c69212114bb66e2df1813651844        9.900000000000000000           0.000000000000000000           0.000000000000000000 Account #4 - Payment Recipient
+ 5 0xa55a151eb00fded1634d27d1127b4be4627079ea        0.001063783200000000           0.000000000000000000           0.000000000000000000 Account #5 - Executor
+...
+12 0x8244333e424f27d9992f55be2ab362de4203ef61        0.000000000000000000           0.000000000000000000           0.000000000000000000 MathLib
+13 0x60c8e00dafb889136ebd2dc558d0d00a69b7a84b        0.000000000000000000           0.000000000000000000           0.000000000000000000 PaymentLib
+14 0x3529089fbacf865e6771ddb8a76ac997963a5393        0.000000000000000000           0.000000000000000000           0.000000000000000000 RequestScheduleLib
+15 0xee0ec07598ed3d84fc4ff0ad4a6d70300f79d812        0.000000000000000000           0.000000000000000000           0.000000000000000000 IterTools
+16 0xcba3446221eaad5f03a413e070be7978bcf5beb9        0.000000000000000000           0.000000000000000000           0.000000000000000000 RequestLib
+17 0xe17585e1e925353038159ca920ff19f47207d0a0        0.000000000000000000           0.000000000000000000           0.000000000000000000 TransactionRequestCore
+18 0x44f3bfeccc26c26313d1b5d4448a0b84e45a391b        0.000000000000000000           0.000000000000000000           0.000000000000000000 RequestFactory
+19 0xcc8461036413b0fb03a632e408781b40dcd630b4        0.000000000000000000           0.000000000000000000           0.000000000000000000 BlockScheduler
+20 0x9f1406f34716517d86b8ba237501a97c19699c39        0.000000000000000000           0.000000000000000000           0.000000000000000000 TimestampScheduler
+21 0xb34c33eaf9d9c3c959f095edeb5a247634c98639        0.095453840800000000           0.000000000000000000           0.000000000000000000 DelayedPayment
+22 0xa2aa7dfbfcba85660634acfcb39167a7304f7fad        0.000000000000000000           0.000000000000000000           0.000000000000000000 DelayedPaymentRequest
+-- ------------------------------------------ --------------------------- ------------------------------ ------------------------------ ---------------------------
+                                                                                    0.000000000000000000           0.000000000000000000 Total Token Balances
+-- ------------------------------------------ --------------------------- ------------------------------ ------------------------------ ---------------------------
+```
+
+Note that there is a residual 0.095453840800000000 ETH balance in the DelayedPayment contract.
+
+I've added additional debugging information to *RequestLib* to produce the following output::
+
+```
+txRequest.address=0xa2aa7dfbfcba85660634acfcb39167a7304f7fad
+  claimData.claimedBy=0xa55a151eb00fded1634d27d1127b4be4627079ea
+  meta.createdBy=0xcc8461036413b0fb03a632e408781b40dcd630b4
+  meta.owner=0xb34c33eaf9d9c3c959f095edeb5a247634c98639
+  paymentData.feeRecipient=0xa22ab8a9d641ce77e06d98b7d7065d324d3d6976
+  paymentData.bountyBenefactor=0xa55a151eb00fded1634d27d1127b4be4627079ea
+  txnData.toAddress=0xb34c33eaf9d9c3c959f095edeb5a247634c98639
+  meta.isCancelled=false
+  meta.wasCalled=true
+  meta.wasSuccessful=true
+  claimData.claimDeposit=0.000000000000000000 0
+  paymentData.fee=0.000000020000000000 20000000000
+  paymentData.feeOwed=0.000000000000000000 0
+  paymentData.bounty=0.000000020000000000 20000000000
+  paymentData.bountyOwed=0.000000000000000000 0
+  schedule.claimWindowSize=255
+  (schedule.firstClaimBlock=18560 = freezeStart-claimWindowSize)
+  schedule.freezePeriod=10
+  (schedule.freezeStart=18815) = windowStart - freezePeriod
+  schedule.reservedWindowSize=16
+  (schedule.reservedWindowEnd=18841) = windowStart + reserveWindowSize
+  schedule.temporalUnit=1
+  schedule.windowSize=255
+  schedule.windowStart=18825
+  (schedule.windowEnd=19080) = windowStart + windowSize
+  txnData.callGas=200000
+  txnData.callValue=0
+  txnData.gasPrice=0.000000020000000000 20000000000
+  claimData.requiredDeposit=0.000000030000000000 30000000000
+  claimData.paymentModifier=96
+  txnData.callData=0x
+txRequest.Executed 0 #18829 {"bounty":"104546139200000000","fee":"20000000000","measuredGasConsumption":"227306"}
+txRequest.LogUint 0 #18829 source=execute text=Before sendTransaction - request.balance value=200000000000000000 0.2
+txRequest.LogUint 1 #18829 source=execute text=Before sendTransaction - self.txnData.toAddress.balance value=9900000000000000000 9.9
+txRequest.LogUint 2 #18829 source=execute text=After sendTransaction - request.balance value=200000000000000000 0.2
+txRequest.LogUint 3 #18829 source=execute text=After sendTransaction - self.txnData.toAddress.balance value=0 0
+txRequest.LogUint 4 #18829 source=execute text=feeOwed before value=0 0
+txRequest.LogUint 5 #18829 source=execute text=getFee() value=20000000000 2e-8
+txRequest.LogUint 6 #18829 source=execute text=feeOwed after value=20000000000 2e-8
+txRequest.LogUint 7 #18829 source=execute text=bountyOwed before value=100000019200000000 0.1000000192
+txRequest.LogUint 8 #18829 source=execute text=bountyOwed after value=104546139200000000 0.1045461392
+txRequest.LogUint 9 #18829 source=execute text=Before sendBounty - request.balance value=199999980000000000 0.19999998
+txRequest.LogUint 10 #18829 source=execute text=Before sendBounty - self.txnData.toAddress.balance value=0 0
+txRequest.LogUint 11 #18829 source=execute text=After sendBounty - request.balance value=95453840800000000 0.0954538408
+txRequest.LogUint 12 #18829 source=execute text=After sendBounty - self.txnData.toAddress.balance value=0 0
+txRequest.LogUint 13 #18829 source=execute text=After _sendOwnerEther - self.txnData.toAddress.balance value=95453840800000000 0.0954538408
+```
+
+This 0.095453840800000000 ETH amount comes from `RequestLib.execute(...)` section:
+
+```javascript
+        // Attempt to send the bounty. as with `.sendFee()` it may fail and need to be caled after execution.
+        emit LogUint("execute", "Before sendBounty - request.balance", address(this).balance);
+        emit LogUint("execute", "Before sendBounty - self.txnData.toAddress.balance", self.txnData.toAddress.balance);
+        self.paymentData.sendBounty();
+        emit LogUint("execute", "After sendBounty - request.balance", address(this).balance);
+        emit LogUint("execute", "After sendBounty - self.txnData.toAddress.balance", self.txnData.toAddress.balance);
+```
+
+This residual can only be sent to the *Payment Recipient* by executing `DelayedPayment.payout()` after the execution period.
 
 <br />
 

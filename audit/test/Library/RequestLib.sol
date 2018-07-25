@@ -384,10 +384,15 @@ library RequestLib {
         emit Executed(self.paymentData.bountyOwed, totalFeePayment, measuredGasConsumption);
     
         // Attempt to send the bounty. as with `.sendFee()` it may fail and need to be caled after execution.
+        emit LogUint("execute", "Before sendBounty - request.balance", address(this).balance);
+        emit LogUint("execute", "Before sendBounty - self.txnData.toAddress.balance", self.txnData.toAddress.balance);
         self.paymentData.sendBounty();
+        emit LogUint("execute", "After sendBounty - request.balance", address(this).balance);
+        emit LogUint("execute", "After sendBounty - self.txnData.toAddress.balance", self.txnData.toAddress.balance);
 
         // If any ether is left, send it back to the owner of the transaction request.
         _sendOwnerEther(self, self.meta.owner);
+        emit LogUint("execute", "After _sendOwnerEther - self.txnData.toAddress.balance", self.txnData.toAddress.balance);
 
         // +-----------------+
         // | End: Accounting |
