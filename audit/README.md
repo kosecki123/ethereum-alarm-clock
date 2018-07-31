@@ -157,6 +157,14 @@ This 0.095453840800000000 ETH amount comes from `RequestLib.execute(...)` sectio
 
 This residual can only be sent to the *Payment Recipient* by executing `DelayedPayment.payout()` after the execution period.
 
+### ChronoLogic comment
+
+The residual value on the `DelayedPayment` contract is the remaining value send back by the scheduler afer execution. To improve the UX we've modified the example to:
+* use `computeEndowment` function to estimate the required amount of ETH - note that we are assuming 200k gas for execution, while any lower actual value will ends up with remaining ETH on the scheduled tx contract which then is send back again to `DelayedPayment`
+* added `collectRemaining` to transfer back the remaining amount of ETH to owner
+* added `value` to indicate the exact amount of ETH to be sent to the receipient
+
+All changes available in PR https://github.com/ethereum-alarm-clock/ethereum-alarm-clock/pull/148
 <br />
 
 <hr />
